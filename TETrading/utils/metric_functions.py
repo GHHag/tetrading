@@ -18,6 +18,7 @@ def calculate_cagr(initial_value, final_value, num_of_periods, yearly_periods=25
     :param yearly_periods:
         'int' : The number of periods in a trading year
         for the time frame in the dataset.
+
     :return:
         'float'
     """

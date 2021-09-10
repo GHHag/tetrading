@@ -46,6 +46,7 @@ def monte_carlo_simulate_returns(positions, symbol, num_testing_periods, start_c
     :param save_fig_to_path:
         Keyword arg 'None/str' : Provide a file path as a string
         to save the plot as a file. Default value=None
+
     :return:
         'List'
     """
@@ -207,7 +208,7 @@ def monte_carlo_simulations_plot(symbol, simulated_equity_curves_list, max_drawd
     plt.show()
 
 
-def monte_carlo_simulation_series_write(data_dicts_list):
+def monte_carlo_simulation_summary_data(data_dicts_list):
     """
     A function that receives data from multiple Monte Carlo
     simulations, summarizes and returns the data in a dictionary.
@@ -217,6 +218,7 @@ def monte_carlo_simulation_series_write(data_dicts_list):
     :param data_dicts_list:
         'List' : A list with dictionaries containing data from
         Monte Carlo simulations.
+
     :return:
         'Dict'
     """
@@ -284,6 +286,7 @@ def monte_carlo_simulate_best_estimated_trades(best_estimate_trades, per_len, nu
     :param print_dataframe:
         Keyword arg 'Boolean' : True/False decides whether to print
         the dataframe to console or not. Default value=False
+
     :return:
         'Pandas DataFrame'
     """
@@ -338,6 +341,7 @@ def monte_carlo_simulate_trade_sequence(trades, num_testing_periods, start_capit
         Keyword arg 'Boolean' : True/False decides if the DataFrame
         with metrics and statistics should be printed to console.
         Default value=True
+
     :return:
         'Pandas DataFrame'
     """
@@ -438,6 +442,7 @@ def calculate_safe_f(best_estimate_trades, period_len, tolerated_pct_dd, tolerat
         Keyword arg 'Boolean' : True/False decides if the DataFrame
         with metrics and statistics should be printed to console.
         Default value=True
+
     :return:
         'float'
     """

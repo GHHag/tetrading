@@ -6,7 +6,7 @@ import pandas as pd
 from TETrading.position.position_manager import PositionManager
 from TETrading.position.position_sizer.position_sizer import PositionSizer
 from TETrading.signal_events.signal_handler import SignalHandler
-from TETrading.utils.monte_carlo_functions import monte_carlo_simulate_returns, monte_carlo_simulation_series_write
+from TETrading.utils.monte_carlo_functions import monte_carlo_simulate_returns, monte_carlo_simulation_summary_data
 from TETrading.metrics.metrics_summary_plot import returns_distribution_plot
 
 
@@ -192,7 +192,7 @@ class TradingSystem:
                     print_dataframe=print_monte_carlo_df,
                     plot_fig=plot_monte_carlo, save_fig_to_path=save_summary_plot_to_path
                 )
-                monte_carlo_summary_data_dict = monte_carlo_simulation_series_write(monte_carlo_sims_data_dicts_list)
+                monte_carlo_summary_data_dict = monte_carlo_simulation_summary_data(monte_carlo_sims_data_dicts_list)
                 self.__monte_carlo_simulations_df = self.__monte_carlo_simulations_df.append(
                     monte_carlo_summary_data_dict, ignore_index=True
                 )

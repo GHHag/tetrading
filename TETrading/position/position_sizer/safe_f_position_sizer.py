@@ -66,6 +66,7 @@ class SafeFPositionSizer(PositionSizer):
             Keyword arg 'Boolean' : True/False decides if the DataFrame
             with metrics and statistics should be printed to console.
             Default value=True
+
         :return:
             'Pandas DataFrame'
         """
@@ -154,6 +155,7 @@ class SafeFPositionSizer(PositionSizer):
             Default value='', empty string
         :param kwargs:
             'Dict' : A dict with additional keyword arguments.
+
         :return:
             'Dict'
         """

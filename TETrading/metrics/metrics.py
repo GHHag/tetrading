@@ -17,12 +17,12 @@ class Metrics:
     symbol : 'str'
         The symbol/ticker of an asset.
     positions : 'List'
-        A list of Position object.
+        A list of Position objects.
     start_capital : 'int/float'
         The amount of capital to purchase assets with.
     num_testing_periods : 'int'
         The number of periods in the dataset that the positions
-        was generated on.
+        was generated from.
     """
 
     def __init__(self, symbol, positions, start_capital, num_testing_periods):
@@ -36,7 +36,6 @@ class Metrics:
         self.__market_to_market_returns_list = []
         self.__pos_net_results_list = []
         self.__pos_gross_results_list = []
-        self.__pos_drawdowns_list = []
         self.__pos_period_lengths_list = []
 
         self.__profitable_pos_list = []
@@ -58,18 +57,18 @@ class Metrics:
                 tot_entry_cap = pos.entry_price * pos.position_size
                 pos_value = tot_entry_cap
                 for mtm_return in pos.market_to_market_returns_list:
-                    self.__equity_list.append(self.__equity_list[-1] + pos_value * (mtm_return / 100))
+                    self.__equity_list.append(round(self.__equity_list[-1] + pos_value * (mtm_return / 100), 2))
                     pos_value += pos_value * (mtm_return / 100)
-                self.__equity_list[-1] += (pos.capital - tot_entry_cap - pos.roundtrip_sum)
+                self.__equity_list[-1] += round((pos.capital - tot_entry_cap - pos.commission), 2)
             elif not pos.fixed_position_size:
-                self.__equity_list.append(pos.capital)
+                tot_entry_cap = pos.entry_price * pos.position_size
+                self.__equity_list.append(pos.capital + (tot_entry_cap-pos.capital))
 
             self.__profit_loss_list.append(float(pos.profit_loss))
             self.__returns_list.append(float(pos.position_return))
             self.__market_to_market_returns_list += pos.market_to_market_returns_list
             self.__pos_net_results_list.append(pos.net_result)
             self.__pos_gross_results_list.append(pos.gross_result)
-            self.__pos_drawdowns_list.append(pos.drawdown)
             self.__pos_period_lengths_list.append(len(pos.returns_list))
 
             if pos.profit_loss > 0:
@@ -112,7 +111,6 @@ class Metrics:
 
         self.__cagr = self._calculate_cagr()
         self.__max_drawdown = self._calculate_max_drawdown()
-        self.__avg_pos_drawdown = np.mean(self.__pos_drawdowns_list)
         self.__rate_of_return = self._calculate_rate_of_return()
         self.__avg_annual_profit = self._calculate_avg_annual_profit()
         try:
@@ -191,7 +189,7 @@ class Metrics:
             'Avg pos net profit': round(self.__avg_pos_net_result, 3),
             '% wins': self.__pct_wins,
             'Profit factor': round(self.__profit_factor, 3),
-            'Sharpe ratio': round(self.__sharpe_ratio, 3),
+            'Sharpe ratio': round(float(self.__sharpe_ratio), 3),
             'Rate of return': self.__rate_of_return,
             'Mean P/L': round(self.__mean_profit_loss, 3),
             'Median P/L': round(self.__median_profit_loss, 3),
@@ -271,6 +269,7 @@ class Metrics:
         :param yearly_periods:
             'int' : The number of periods in a trading year
             for the time frame in the dataset.
+
         :return:
             'float'
         """
@@ -309,12 +308,15 @@ class Metrics:
         ----------
         :param risk_free_rate:
             The yearly return of a risk free asset.
+
         :return:
             'float'
         """
 
-        returns = self.__market_to_market_returns_list
-        excess_returns = [Decimal(r-risk_free_rate/len(returns)) for r in returns]
+        excess_returns = np.array([
+            Decimal(ret-risk_free_rate) for ret in self.__market_to_market_returns_list
+        ])
+        excess_returns /= len(excess_returns)
         return Decimal(np.sqrt(len(excess_returns))) * Decimal(np.mean(excess_returns)) / \
             Decimal(np.std(excess_returns))
 
@@ -327,6 +329,7 @@ class Metrics:
         :param yearly_periods:
             'int' : The number of periods in a trading year
             for the time frame in the dataset.
+
         :return:
             'float'
         """
@@ -347,17 +350,36 @@ class Metrics:
 
     def print_metrics(self):
         """
-        Prints metrics to the console.
+        Prints statistics and metrics to the console.
         """
 
         print(f'\nTicker: {self.__symbol}'
               f'\nPerformance summary: '
               f'\nNumber of positions: {len(self.__returns_list)}'
               f'\nNumber of profitable positions: {len(self.__profitable_pos_list)}'
-              f'\n% wins: {format(self.__pct_wins, ".2f")}'
               f'\nNumber of loosing positions: {len(self.__loosing_pos_list)}'
+              f'\n% wins: {format(self.__pct_wins, ".2f")}'
               f'\n% losses: {format(self.__pct_losses, ".2f")}'
-
+              f'\nTesting periods: {self.__num_testing_periods}'
+              f'\nStart capital: {self.__start_capital}'
+              f'\nFinal capital: {format(self.__final_capital, ".3f")}'
+              f'\nTotal gross profit: {format(self.__total_gross_profit, ".3f")}'
+              f'\nAvg pos net profit: {format(self.__avg_pos_net_result, ".3f")}'
+              f'\nMean P/L: {format(self.__mean_profit_loss, ".3f")}'
+              f'\nMedian P/L: {format(self.__median_profit_loss, ".3f")}'
+              f'\nStd of P/L: {format(self.__std_profit_loss, ".3f")}'
+              f'\nMean return: {format(self.__mean_return, ".3f")}'
+              f'\nMedian return: {format(self.__median_return, ".3f")}'
+              f'\nStd of returns: {format(self.__std_return, ".3f")}'
+              f'\nExpectancy: {format(self.__expectancy, ".3f")}'
+              f'\nRate of return: {format(self.__rate_of_return, ".2f")}'
+              f'\nMax drawdown: {format(self.__max_drawdown, ".2f")}%'
+              f'\nRoMad: {format(self.__return_to_max_drawdown, ".3f")}%'
+              f'\nProfit factor: {format(self.__profit_factor, ".3f")}'
+              f'\nCAGR: {format(self.__cagr, ".2f")}%'
+              f'\nSharpe ratio: {format(self.__sharpe_ratio, ".4f")}'
+              f'\nAvg annual profit: {format(self.__avg_annual_profit, ".2f")}'
+        
               f'\n\nTotal equity market to market:'
               f'\n{list(map(float, self.__equity_list))}'
               f'\nP/L (per contract):'
@@ -374,27 +396,6 @@ class Metrics:
               f'\n{self.__loosing_pos_list}'
               f'\nMean of losses (per contract): {format(self.__mean_negative_pos, ".3f")}'
               f'\nMedian loss (per contract): {format(self.__median_negative_pos, ".3f")}'
-
-              f'\n\nTesting periods: {self.__num_testing_periods}'
-              f'\nStart capital: {self.__start_capital}'
-              f'\nFinal capital: {format(self.__final_capital, ".3f")}'
-              f'\nTotal gross profit: {format(self.__total_gross_profit, ".3f")}'
-              f'\nAvg pos net profit: {format(self.__avg_pos_net_result, ".3f")}'
-              f'\nMean P/L: {format(self.__mean_profit_loss, ".3f")}'
-              f'\nMedian P/L: {format(self.__median_profit_loss, ".3f")}'
-              f'\nStd of P/L: {format(self.__std_profit_loss, ".3f")}'
-              f'\nMean return: {format(self.__mean_return, ".3f")}'
-              f'\nMedian return: {format(self.__median_return, ".3f")}'
-              f'\nStd of returns: {format(self.__std_return, ".3f")}'
-              f'\nExpectancy: {format(self.__expectancy, ".3f")}'
-              f'\nRate of return: {format(self.__rate_of_return, ".2f")}'
-              f'\nMax drawdown: {format(self.__max_drawdown, ".2f")}%'
-              f'\nAvg pos drawdown: {format(self.__avg_pos_drawdown, ".2f")}%'
-              f'\nRoMad: {format(self.__return_to_max_drawdown, ".3f")}%'
-              f'\nProfit factor: {format(self.__profit_factor, ".3f")}'
-              f'\nCAGR: {format(self.__cagr, ".2f")}%'
-              f'\nSharpe ratio: {format(self.__sharpe_ratio, ".4f")}'
-              f'\nAvg annual profit: {format(self.__avg_annual_profit, ".2f")}'
             
               f'\n\nMAE data: {str(self.__mae_list)}'
               f'\nMFE data: {str(self.__mfe_list)}'

@@ -1,4 +1,4 @@
-from decimal import Decimal, DivisionByZero
+from decimal import Decimal
 
 
 class Position:
@@ -14,12 +14,12 @@ class Position:
         True/False decides if the position size should be the same
         fixed amount. The variable is used in the class´ exit_market
         functions return statement control flow. Default value=True
-    roundtrip_pct_cost : Keyword arg 'int/float/Decimal'
-        The transaction cost of a roundtrip given as a percentage (a float from 0.0 to 1.0) of the total
+    commission_pct_cost : Keyword arg 'float'
+        The transaction cost of given as a percentage (a float from 0.0 to 1.0) of the total
         transaction. Default value=0.0
     """
 
-    def __init__(self, capital, fixed_position_size=True, roundtrip_pct_cost=0.0):
+    def __init__(self, capital, fixed_position_size=True, commission_pct_cost=0.0):
         self.__entry_price = None
         self.__exit_price = None
         self.__position_size = None
@@ -28,10 +28,9 @@ class Position:
         self.__capital = Decimal(capital)
         self.__uninvested_capital = 0
         self.__fixed_position_size = fixed_position_size
-        self.__roundtrip_pct_cost = Decimal(roundtrip_pct_cost)
-        self.__roundtrip_sum = None
+        self.__commission_pct_cost = Decimal(commission_pct_cost)
+        self.__commission = None
         self.__active_position = False
-        self.__drawdown = None
         self.__last_price = None
         self.__unrealised_return = 0
         self.__unrealised_profit_loss = 0
@@ -52,8 +51,8 @@ class Position:
         return self.__position_size
 
     @property
-    def roundtrip_sum(self):
-        return self.__roundtrip_sum
+    def commission(self):
+        return self.__commission
 
     @property
     def active_position(self):
@@ -78,10 +77,6 @@ class Position:
     @property
     def returns_list(self):
         return self.__returns_list
-
-    @property
-    def drawdown(self):
-        return self.__drawdown
 
     @property
     def unrealised_return(self):
@@ -139,12 +134,12 @@ class Position:
         if self.__direction == 'long':
             return Decimal(
                 (self.__position_size * self.__exit_price) - ((self.__position_size * self.__entry_price) *
-                                                              self.__roundtrip_pct_cost)
+                                                              self.__commission_pct_cost)
             ).quantize(Decimal('0.02'))
         elif self.__direction == 'short':
             return Decimal(
                 (self.__position_size * self.__entry_price) - ((self.__position_size * self.__exit_price) *
-                                                               self.__roundtrip_pct_cost)
+                                                               self.__commission_pct_cost)
             ).quantize(Decimal('0.02'))
 
     @property
@@ -222,7 +217,7 @@ class Position:
         self.__direction = direction
         self.__position_size = int(self.__capital / self.__entry_price)
         self.__uninvested_capital = self.__capital - (self.__position_size * self.__entry_price)
-        self.__roundtrip_sum = (self.__position_size * self.__entry_price) * self.__roundtrip_pct_cost
+        self.__commission = (self.__position_size * self.__entry_price) * self.__commission_pct_cost
         self.__entry_dt = entry_dt
         self.__active_position = True
 
@@ -251,14 +246,12 @@ class Position:
         self.update(self.__exit_price)
         self.__exit_signal_dt = exit_signal_dt
         self.__active_position = False
-        try:
-            self._calculate_max_drawdown()
-        except DivisionByZero:
-            pass
+        self.__commission += (self.__position_size * self.__exit_price) * self.__commission_pct_cost
 
         if not self.__fixed_position_size:
-            return Decimal(self.__position_size * self.__exit_price + self.__uninvested_capital)\
+            self.__capital = Decimal(self.__position_size * self.__exit_price + self.__uninvested_capital)\
                 .quantize(Decimal('0.02'))
+            return self.__capital
         else:
             return self.__capital
 
@@ -329,25 +322,6 @@ class Position:
 
         self._unrealised_return(price)
         self._unrealised_profit_loss(price)
-
-    def _calculate_max_drawdown(self):
-        """
-        Calculates the max drawdown from __position_profit_loss_list.
-        """
-
-        max_drawdown = 0
-        peak_value = 1
-
-        for index, ret in enumerate(self.__position_profit_loss_list):
-            if ret > peak_value:
-                peak_value = ret
-                trough_value = min(self.__position_profit_loss_list[index:])
-                drawdown = (trough_value - peak_value) / peak_value
-
-                if drawdown < max_drawdown:
-                    max_drawdown = drawdown
-
-        self.__drawdown = abs(round((max_drawdown * 100), 2))
 
     def print_position_status(self):
         """

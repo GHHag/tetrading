@@ -51,7 +51,7 @@ def strategy_metrics_summary_plot(returns_data, rolling_equity, underlying_price
 
     axs[0, 1].plot(underlying_price_series, color='black', linewidth=2)
     axs[0, 1].xaxis.set_major_locator(MaxNLocator(integer=True))
-    axs[0, 1].set_title(f'{symbol} price chart')
+    axs[0, 1].set_title(f'{symbol} price')
     axs[0, 1].set_xlabel('Periods')
     axs[0, 1].set_ylabel('Price')
 
@@ -105,7 +105,7 @@ def strategy_metrics_summary_plot(returns_data, rolling_equity, underlying_price
         print('\nMFE/MAE data missing')
 
     axs[1, 3].text(0.2, 0.3, f'Win rate:                {format(summary_data_dict["% wins"], ".2f")}%\n\n'
-                             f'Gross profit               {summary_data_dict["Total gross profit"]}\n\n'
+                             f'Gross profit             {summary_data_dict["Total gross profit"]}\n\n'
                              f'Profit factor:           {summary_data_dict["Profit factor"]}\n\n'
                              f'Sharpe ratio:            {summary_data_dict["Sharpe ratio"]}\n\n'
                              f'Expectancy:              {summary_data_dict["Expectancy"]}\n\n'
@@ -166,11 +166,13 @@ def returns_distribution_plot(market_to_market_returns, mae, mfe,
                f'50%: {np.quantile(market_to_market_returns, 0.5)}\n'
                f'75%: {np.quantile(market_to_market_returns, 0.75)}\n')
 
-    ax[1].hist(mae, bins=int(np.sqrt(len(mae))), edgecolor='black')
-    ax[1].set_title('MAE distribution')
-
-    ax[2].hist(mfe, bins=int(np.sqrt(len(mfe))), edgecolor='black')
-    ax[2].set_title('MFE distribution')
+    try:
+        ax[1].hist(mae, bins=int(np.sqrt(len(mae))), edgecolor='black')
+        ax[1].set_title('MAE distribution')
+        ax[2].hist(mfe, bins=int(np.sqrt(len(mfe))), edgecolor='black')
+        ax[2].set_title('MFE distribution')
+    except ValueError:
+        print('Failed to plot MAE and MFE')
 
     plt.tight_layout()
 
