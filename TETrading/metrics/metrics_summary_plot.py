@@ -51,47 +51,47 @@ def strategy_metrics_summary_plot(returns_data, rolling_equity, underlying_price
 
     axs[0, 1].plot(underlying_price_series, color='black', linewidth=2)
     axs[0, 1].xaxis.set_major_locator(MaxNLocator(integer=True))
-    axs[0, 1].set_title(f'{symbol} price')
+    axs[0, 1].set_title(f'{symbol} Price')
     axs[0, 1].set_xlabel('Periods')
     axs[0, 1].set_ylabel('Price')
 
     axs[0, 2].hist(returns_data, edgecolor='black', linewidth=1.2, orientation='vertical',
                    bins=int(np.sqrt(len(returns_data))))
     axs[0, 2].yaxis.set_major_locator(MaxNLocator(integer=True))
-    axs[0, 2].set_title('Returns distribution')
+    axs[0, 2].set_title('Returns Distribution')
     axs[0, 2].set_xlabel('Return')
     axs[0, 2].set_ylabel('Frequency')
 
     axs[0, 3].hist(position_period_lengths, edgecolor='black', linewidth=1.2, orientation='horizontal',
                    bins=int(np.sqrt(len(position_period_lengths))))
     axs[0, 3].yaxis.set_major_locator(MaxNLocator(integer=True))
-    axs[0, 3].set_title('Position period lengths')
+    axs[0, 3].set_title('Position Period Lengths')
     axs[0, 3].set_xlabel('Frequency')
     axs[0, 3].set_ylabel('Periods')
 
     axs[1, 0].stem([x for x in range(len(returns_data))], sorted(returns_data), markerfmt=' ', use_line_collection=True)
-    axs[1, 0].set_title('Sorted returns distribution')
+    axs[1, 0].set_title('Sorted Returns Distribution')
     axs[1, 0].set_xlabel('Periods')
     axs[1, 0].set_ylabel('Return')
 
     axs[1, 1].bar([x for x in range(len(returns_data))], returns_data)
     axs[1, 1].axhline(y=0, color='black', linewidth=0.5)
-    axs[1, 1].set_title('Returns in historic order')
+    axs[1, 1].set_title('Returns in Historic Order')
     axs[1, 1].set_xlabel('Periods')
     axs[1, 1].set_ylabel('Return')
 
     try:
         mae_mfe_dict = {
-            'Positions in historic order': np.arange(0, len(profitable_positions)),
+            'Positions in Historic Order': np.arange(0, len(profitable_positions)),
             'MFE': mfe_data,
             'Return': profitable_positions,
             'MAE': mae_data
         }
         ch_df = pd.DataFrame(mae_mfe_dict)
 
-        ch_df.plot(x='Positions in historic order', y='MFE', kind='bar', ax=axs[1, 2], color='green')
-        ch_df.plot(x='Positions in historic order', y='MAE', kind='bar', ax=axs[1, 2], color='red')
-        ch_df.plot(x='Positions in historic order', y='Return', kind='bar', ax=axs[1, 2], color='black')
+        ch_df.plot(x='Positions in Historic Order', y='MFE', kind='bar', ax=axs[1, 2], color='green')
+        ch_df.plot(x='Positions in Historic Order', y='MAE', kind='bar', ax=axs[1, 2], color='red')
+        ch_df.plot(x='Positions in Historic Order', y='Return', kind='bar', ax=axs[1, 2], color='black')
         axs[1, 2].set_title('MFE, MAE, Return')
         axs[1, 2].set_ylabel('Return')
         try:
@@ -112,7 +112,7 @@ def strategy_metrics_summary_plot(returns_data, rolling_equity, underlying_price
                              f'Max drawdown (%):        {format(summary_data_dict["Max drawdown (%)"], ".2f")}\n\n'
                              f'CAGR (%):                {summary_data_dict["CAGR (%)"]}', fontsize=12)
     axs[1, 3].axis('off')
-    axs[1, 3].set_title('Performance summary')
+    axs[1, 3].set_title('Performance Summary')
 
     plt.tight_layout()
 
@@ -156,7 +156,7 @@ def returns_distribution_plot(market_to_market_returns, mae, mfe,
     ]
     bins = max([int(np.sqrt(len(market_to_market_returns)) / 2), 8])
     ax[0].hist(market_to_market_returns, bins=bins, edgecolor='black')
-    ax[0].set_title('Market to market returns distribution')
+    ax[0].set_title('Market to Market Returns Distribution')
     ax[0].text(10.0, 10.0,
                f'Count: {len(market_to_market_returns)}\n'
                f'Mean: {round(np.mean(market_to_market_returns), 4)}\n'

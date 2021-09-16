@@ -5,6 +5,7 @@ import pandas as pd
 from TETrading.position.position_sizer.position_sizer import PositionSizer
 from TETrading.position.position_manager import PositionManager
 from TETrading.utils.metric_functions import calculate_cagr
+from TETrading.utils.monte_carlo_functions import monte_carlo_simulations_plot
 
 
 class SafeFPositionSizer(PositionSizer):
@@ -36,7 +37,8 @@ class SafeFPositionSizer(PositionSizer):
         self.__max_dd_pctl_threshold = max_drawdown_percentile_threshold
 
     def _monte_carlo_simulate_pos_sequence(self, positions, num_testing_periods, start_capital, capital_fraction=1.0,
-                                           num_of_sims=1000, data_amount_used=0.5, symbol='', print_dataframe=True):
+                                           num_of_sims=1000, data_amount_used=0.5, symbol='',
+                                           print_dataframe=False, plot_monte_carlo_sims=False):
         """
         Randomizes the order of a sequence of positions, calculates
         metrics for system evaluation and stores them in a Pandas
@@ -73,8 +75,9 @@ class SafeFPositionSizer(PositionSizer):
 
         monte_carlo_sims_df = pd.DataFrame()
 
-        final_equity = []
-        max_drawdowns = []
+        equity_curves_list = []
+        final_equity_list = []
+        max_drawdowns_list = []
         sim_positions = None
 
         def generate_position_sequence(position_list, **kwargs):
@@ -99,18 +102,23 @@ class SafeFPositionSizer(PositionSizer):
         for i in range(num_of_sims):
             sim_positions = PositionManager(symbol, (num_testing_periods * data_amount_used), start_capital,
                                             capital_fraction)
-            tr_list = random.sample(positions, len(positions))
-            sim_positions.generate_positions(generate_position_sequence, tr_list)
 
+            pos_list = random.sample(positions, len(positions))
+            sim_positions.generate_positions(generate_position_sequence, pos_list)
             monte_carlo_sims_df = monte_carlo_sims_df.append(sim_positions.metrics.summary_data_dict, ignore_index=True)
+            final_equity_list.append(float(sim_positions.metrics.equity_list[-1]))
 
-            final_equity.append(sim_positions.metrics.equity_list[-1])
-            max_drawdowns.append(sim_positions.metrics.max_drawdown)
+            max_drawdowns_list.append(sim_positions.metrics.max_drawdown)
 
-        final_equity = sorted(final_equity)
-        car25 = calculate_cagr(sim_positions.metrics.start_capital, final_equity[(int(len(final_equity) * 0.25))],
+            equity_curves_list.append(sim_positions.metrics.equity_list)
+
+        final_equity_list = sorted(final_equity_list)
+
+        car25 = calculate_cagr(sim_positions.metrics.start_capital,
+                               final_equity_list[(int(len(final_equity_list) * 0.25))],
                                sim_positions.metrics.num_testing_periods)
-        car75 = calculate_cagr(sim_positions.metrics.start_capital, final_equity[(int(len(final_equity) * 0.75))],
+        car75 = calculate_cagr(sim_positions.metrics.start_capital,
+                               final_equity_list[(int(len(final_equity_list) * 0.75))],
                                sim_positions.metrics.num_testing_periods)
 
         car_series = pd.Series()
@@ -120,6 +128,9 @@ class SafeFPositionSizer(PositionSizer):
 
         if print_dataframe:
             print(monte_carlo_sims_df.to_string())
+        if plot_monte_carlo_sims:
+            monte_carlo_simulations_plot(symbol, equity_curves_list, max_drawdowns_list, final_equity_list,
+                                         capital_fraction, car25, car75)
 
         return monte_carlo_sims_df
 
@@ -170,7 +181,8 @@ class SafeFPositionSizer(PositionSizer):
         # simulate sequences of given Position objects
         monte_carlo_sims_df = self._monte_carlo_simulate_pos_sequence(
             best_estimate_positions[-(int(len(best_estimate_positions) * split_data_fraction)):], period_len, capital,
-            num_of_sims=num_of_sims, data_amount_used=forecast_data_fraction, **kwargs
+            num_of_sims=num_of_sims, data_amount_used=forecast_data_fraction, symbol=symbol,
+            **kwargs
         )
 
         # sort the 'Max drawdown (%)' column and convert to a list

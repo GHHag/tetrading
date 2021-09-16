@@ -108,7 +108,7 @@ class PositionManager:
             to save the plot as a file. Default value=None
         """
 
-        if not self.__generated_positions:
+        if len(self.__metrics.positions) < 1:
             print('No positions generated.')
         else:
             self.__metrics.print_metrics()

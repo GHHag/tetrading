@@ -54,8 +54,8 @@ def monte_carlo_simulate_returns(positions, symbol, num_testing_periods, start_c
     monte_carlo_sims_data = []
 
     equity_curves_list = []
-    eq_curve_final_equity = []
-    max_drawdowns = []
+    final_equity_list = []
+    max_drawdowns_list = []
     sim_positions = None
 
     def generate_pos_sequence(position_list, **kwargs):
@@ -81,22 +81,22 @@ def monte_carlo_simulate_returns(positions, symbol, num_testing_periods, start_c
         sim_positions = PositionManager(symbol, (num_testing_periods * data_amount_used), start_capital,
                                         capital_fraction)
 
-        tr_list = random.sample(positions, len(positions))
-        sim_positions.generate_positions(generate_pos_sequence, tr_list)
+        pos_list = random.sample(positions, len(positions))
+        sim_positions.generate_positions(generate_pos_sequence, pos_list)
         monte_carlo_sims_data.append(sim_positions.metrics.summary_data_dict)
-        eq_curve_final_equity.append(float(sim_positions.metrics.equity_list[-1]))
+        final_equity_list.append(float(sim_positions.metrics.equity_list[-1]))
 
-        max_drawdowns.append(sim_positions.metrics.max_drawdown)
+        max_drawdowns_list.append(sim_positions.metrics.max_drawdown)
 
         equity_curves_list.append(sim_positions.metrics.equity_list)
 
-    eq_curve_final_equity = sorted(eq_curve_final_equity)
+    final_equity_list = sorted(final_equity_list)
 
     car25 = calculate_cagr(sim_positions.metrics.start_capital,
-                           eq_curve_final_equity[(int(len(eq_curve_final_equity) * 0.25))],
+                           final_equity_list[(int(len(final_equity_list) * 0.25))],
                            sim_positions.metrics.num_testing_periods)
     car75 = calculate_cagr(sim_positions.metrics.start_capital,
-                           eq_curve_final_equity[(int(len(eq_curve_final_equity) * 0.75))],
+                           final_equity_list[(int(len(final_equity_list) * 0.75))],
                            sim_positions.metrics.num_testing_periods)
 
     monte_carlo_sims_data[-1]['CAR25'] = car25
@@ -109,13 +109,13 @@ def monte_carlo_simulate_returns(positions, symbol, num_testing_periods, start_c
         print(sim_data.to_string())
 
     if plot_fig:
-        monte_carlo_simulations_plot(symbol, equity_curves_list, max_drawdowns, eq_curve_final_equity,
+        monte_carlo_simulations_plot(symbol, equity_curves_list, max_drawdowns_list, final_equity_list,
                                      capital_fraction, car25, car75, save_fig_to_path=save_fig_to_path)
 
     return monte_carlo_sims_data
 
 
-def monte_carlo_simulations_plot(symbol, simulated_equity_curves_list, max_drawdowns, eq_curve_final_equity,
+def monte_carlo_simulations_plot(symbol, simulated_equity_curves_list, max_drawdowns_list, final_equity_list,
                                  capital_fraction, car25, car75, save_fig_to_path=None):
     """
     Plots equity curves generated from a Monte Carlo simulation.
@@ -128,10 +128,10 @@ def monte_carlo_simulations_plot(symbol, simulated_equity_curves_list, max_drawd
         'str' : The symbol/ticker of an asset.
     :param simulated_equity_curves_list:
         'List' : A list containing simulated equity curves.
-    :param max_drawdowns:
+    :param max_drawdowns_list:
         'List' : A list containing the maximum drawdowns of
         the simulated equity curves.
-    :param eq_curve_final_equity:
+    :param final_equity_list:
         'List' : A list containing the final equity of the
         simulated equity curves.
     :param capital_fraction:
@@ -163,27 +163,27 @@ def monte_carlo_simulations_plot(symbol, simulated_equity_curves_list, max_drawd
         axs[0].set_xlabel('Periods')
         axs[0].set_ylabel('Equity')
 
-    hmdd_patch = mpatches.Patch(label='Highest max drawdown ' + str(round(max(max_drawdowns), 2)) + '%')
-    lmdd_patch = mpatches.Patch(label='Lowest max drawdown ' + str(round(min(max_drawdowns), 2)) + '%')
+    hmdd_patch = mpatches.Patch(label='Highest max drawdown ' + str(round(max(max_drawdowns_list), 2)) + '%')
+    lmdd_patch = mpatches.Patch(label='Lowest max drawdown ' + str(round(min(max_drawdowns_list), 2)) + '%')
     axs[0].legend(handles=[hmdd_patch, lmdd_patch])
 
-    axs[1].plot(eq_curve_final_equity, color='royalblue')
+    axs[1].plot(final_equity_list, color='royalblue')
     axs[1].xaxis.set_major_formatter(mtick.PercentFormatter(xmax=num_of_sims))
     axs[1].set_xticks(np.arange(0, num_of_sims + 1, num_of_sims * 0.25))
     axs[1].set_title('Inverse CDF of final equity when traded at f=' + str(capital_fraction))
     axs[1].set_xlabel('Percentile')
     axs[1].set_ylabel('Final equity')
 
-    min_equity = min(eq_curve_final_equity)
+    min_equity = min(final_equity_list)
     twtyfifth_pctl = num_of_sims * 0.25
-    twtyfifth_pctl_ret = eq_curve_final_equity[(int(len(eq_curve_final_equity) * 0.25))]
+    twtyfifth_pctl_ret = final_equity_list[(int(len(final_equity_list) * 0.25))]
     axs[1].plot([twtyfifth_pctl, twtyfifth_pctl], [min_equity, twtyfifth_pctl_ret],
                 color='purple', linestyle=(0, (3, 1, 1, 1)))
     axs[1].plot([0, twtyfifth_pctl], [twtyfifth_pctl_ret, twtyfifth_pctl_ret],
                 color='purple', linestyle=(0, (3, 1, 1, 1)))
 
     svntyfifth_pctl = num_of_sims * 0.75
-    svntyfifth_pctl_ret = eq_curve_final_equity[(int(len(eq_curve_final_equity) * 0.75))]
+    svntyfifth_pctl_ret = final_equity_list[(int(len(final_equity_list) * 0.75))]
     axs[1].plot([svntyfifth_pctl, svntyfifth_pctl], [min_equity, svntyfifth_pctl_ret],
                 color='black', linestyle=(0, (3, 1, 1, 1)))
     axs[1].plot([0, svntyfifth_pctl], [svntyfifth_pctl_ret, svntyfifth_pctl_ret],
@@ -193,7 +193,7 @@ def monte_carlo_simulations_plot(symbol, simulated_equity_curves_list, max_drawd
     car75_patch = mpatches.Patch(label='CAR75 ' + str(round(car75, 2)), color='black')
     axs[1].legend(handles=[car25_patch, car75_patch])
 
-    axs[2].plot(sorted(max_drawdowns), color='royalblue')
+    axs[2].plot(sorted(max_drawdowns_list), color='royalblue')
     axs[2].xaxis.set_major_formatter(mtick.PercentFormatter(xmax=num_of_sims))
     axs[2].set_xticks(np.arange(0, num_of_sims + 1, num_of_sims * 0.25))
     axs[2].set_title('Inverse CDF of max drawdown when traded at f=' + str(capital_fraction))
@@ -349,7 +349,7 @@ def monte_carlo_simulate_trade_sequence(trades, num_testing_periods, start_capit
     monte_carlo_sims_df = pd.DataFrame()
 
     final_equity = []
-    max_drawdowns = []
+    max_drawdowns_list = []
     sim_trades = None
 
     def generate_trade_sequence(trades_list, **kwargs):
@@ -373,13 +373,13 @@ def monte_carlo_simulate_trade_sequence(trades, num_testing_periods, start_capit
 
     for i in range(num_of_sims):
         sim_trades = PositionManager(symbol, (num_testing_periods * data_amount_used), start_capital, capital_fraction)
-        tr_list = random.sample(trades, len(trades))
-        sim_trades.generate_positions(generate_trade_sequence, tr_list)
+        pos_list = random.sample(trades, len(trades))
+        sim_trades.generate_positions(generate_trade_sequence, pos_list)
 
         monte_carlo_sims_df = monte_carlo_sims_df.append(sim_trades.metrics.summary_data_dict, ignore_index=True)
 
         final_equity.append(sim_trades.metrics.equity_list[-1])
-        max_drawdowns.append(sim_trades.metrics.max_drawdown)
+        max_drawdowns_list.append(sim_trades.metrics.max_drawdown)
 
     final_equity = sorted(final_equity)
     car25 = calculate_cagr(sim_trades.metrics.start_capital, final_equity[(int(len(final_equity) * 0.25))],

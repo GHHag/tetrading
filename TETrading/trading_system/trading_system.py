@@ -93,7 +93,7 @@ class TradingSystem:
               self.__monte_carlo_simulations_df.to_string())
 
     def __call__(
-            self, *args, capital=10000, capital_fraction=1.0,
+            self, *args, capital=10000, capital_fraction=1.0, yearly_periods=251,
             plot_performance_summary=False, save_summary_plot_to_path=None, system_analysis_to_csv_path=None,
             plot_returns_distribution=False, save_returns_distribution_plot_to_path=None,
             run_monte_carlo_sims=False, num_of_monte_carlo_sims=2500, monte_carlo_data_amount=0.4,
@@ -114,6 +114,10 @@ class TradingSystem:
         :param capital_fraction:
             Keyword arg 'float' : The fraction of the capital that will be used.
             Default value=1.0
+        :param yearly_periods:
+            Keyword arg 'int' : The number of periods in a year for the time frame
+            of the given datasets.
+            Default value=251
         :param plot_performance_summary:
             Keyword arg 'Boolean' : True/False decides whether to plot summary
             statistics or not. Default value=False
@@ -198,11 +202,16 @@ class TradingSystem:
                 )
 
             # add position sizing and system health data to the SignalHandler
-            self.__signal_handler.add_pos_sizing_evaluation_data(
-                self.__pos_sizer(pos_manager.metrics.positions, len(data),
-                                 capital=capital, num_of_sims=num_of_monte_carlo_sims,
-                                 symbol=instrument, print_dataframe=False)
-            )
+            if len(pos_manager.metrics.positions) > 0:
+                avg_yearly_positions = len(pos_manager.metrics.positions) / (len(data) / yearly_periods)
+                self.__signal_handler.add_pos_sizing_evaluation_data(
+                    self.__pos_sizer(
+                        pos_manager.metrics.positions, len(data), forecast_positions=150,
+                        forecast_data_fraction=(avg_yearly_positions / len(pos_manager.metrics.positions)) * 2,
+                        capital=capital, num_of_sims=num_of_monte_carlo_sims, symbol=instrument,
+                        print_dataframe=print_monte_carlo_df, plot_monte_carlo_sims=plot_monte_carlo
+                    )
+                )
 
             self.__full_pos_list += pos_manager.metrics.positions[:]
             self.__total_period_len += len(data)
