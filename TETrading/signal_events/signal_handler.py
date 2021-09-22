@@ -10,10 +10,10 @@ class SignalHandler:
     TODO: Implement methods _execute_signals and __call__.
     """
 
-    def __init__(self):
-        self.__entry_signals = EntrySignals()
+    def __init__(self, objective_function_str):
+        self.__entry_signals = EntrySignals(objective_function_str)
         self.__exit_signals = ExitSignals()
-        self.__active_positions = ActivePositionsSignals()
+        self.__active_positions = ActivePositionsSignals(objective_function_str)
 
     def handle_entry_signal(self, symbol, data_dict):
         """

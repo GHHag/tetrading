@@ -32,13 +32,19 @@ class SafeFPositionSizer(PositionSizer):
         distribution of maximum drawdown values will be 15% or less.
     """
 
-    def __init__(self, tolerated_pct_max_drawdown, max_drawdown_percentile_threshold):
+    def __init__(self, objective_function_str, tolerated_pct_max_drawdown, max_drawdown_percentile_threshold):
+        self.__objective_function_str = objective_function_str
         self.__tol_pct_max_dd = tolerated_pct_max_drawdown
         self.__max_dd_pctl_threshold = max_drawdown_percentile_threshold
 
+    @property
+    def objective_function_str(self):
+        return self.__objective_function_str
+
     def _monte_carlo_simulate_pos_sequence(self, positions, num_testing_periods, start_capital, capital_fraction=1.0,
                                            num_of_sims=1000, data_amount_used=0.5, symbol='',
-                                           print_dataframe=False, plot_monte_carlo_sims=False):
+                                           print_dataframe=False, plot_monte_carlo_sims=False,
+                                           **kwargs):
         """
         Randomizes the order of a sequence of positions, calculates
         metrics for system evaluation and stores them in a Pandas
@@ -80,7 +86,7 @@ class SafeFPositionSizer(PositionSizer):
         max_drawdowns_list = []
         sim_positions = None
 
-        def generate_position_sequence(position_list, **kwargs):
+        def generate_position_sequence(position_list, **kw):
             """
             Generates positions from given list of objects of type Position.
             The list will be sliced at a percentage of the total amount of
@@ -90,7 +96,7 @@ class SafeFPositionSizer(PositionSizer):
             ----------
             :param position_list:
                 'List' : A list of Position objects.
-            :param kwargs:
+            :param kw:
                 'Dict' : A dict with additional keyword arguments which
                 are never used, but might be provided depending on how the
                 trading system logic and parameters are structured.

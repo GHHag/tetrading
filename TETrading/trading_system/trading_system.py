@@ -55,7 +55,7 @@ class TradingSystem:
         self.__full_mfe_list = []
 
         # Instantiate SignalHandler object
-        self.__signal_handler = SignalHandler()
+        self.__signal_handler = SignalHandler(self.__pos_sizer.objective_function_str)
 
         self.__metrics_df = self._create_metrics_df()
         self.__monte_carlo_simulations_df = self._create_monte_carlo_sims_df()
@@ -209,7 +209,8 @@ class TradingSystem:
                         pos_manager.metrics.positions, len(data), forecast_positions=150,
                         forecast_data_fraction=(avg_yearly_positions / len(pos_manager.metrics.positions)) * 2,
                         capital=capital, num_of_sims=num_of_monte_carlo_sims, symbol=instrument,
-                        print_dataframe=print_monte_carlo_df, plot_monte_carlo_sims=plot_monte_carlo
+                        print_dataframe=print_monte_carlo_df, plot_monte_carlo_sims=plot_monte_carlo,
+                        metrics_dict=pos_manager.metrics.summary_data_dict
                     )
                 )
 

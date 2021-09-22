@@ -389,12 +389,12 @@ class Metrics:
             
               f'\n\nProfits (per contract):'
               f'\n{self.__profitable_pos_list}'
-              f'\nMean of profits (per contract): {format(self.__mean_positive_pos, ".3f")}'
+              f'\nMean profit (per contract): {format(self.__mean_positive_pos, ".3f")}'
               f'\nMedian profit (per contract): {format(self.__median_positive_pos, ".3f")}'
 
               f'\n\nLosses (per contract):'
               f'\n{self.__loosing_pos_list}'
-              f'\nMean of losses (per contract): {format(self.__mean_negative_pos, ".3f")}'
+              f'\nMean loss (per contract): {format(self.__mean_negative_pos, ".3f")}'
               f'\nMedian loss (per contract): {format(self.__median_negative_pos, ".3f")}'
             
               f'\n\nMAE data: {str(self.__mae_list)}'

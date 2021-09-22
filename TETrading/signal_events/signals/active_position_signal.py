@@ -6,7 +6,8 @@ class ActivePositionsSignals:
     Handles data for active positions.
     """
 
-    def __init__(self):
+    def __init__(self, objective_function):
+        self.__objective_function = objective_function
         self.__data_list = []
 
     @property
@@ -26,7 +27,8 @@ class ActivePositionsSignals:
 
     def __str__(self):
         if self.__data_list:
-            return f'Active positions\n{self.dataframe.sort_values(ascending=False, by="CAR25").to_string()}'
+            return f'Active positions\n' \
+                   f'{self.dataframe.sort_values(ascending=False, by=self.__objective_function).to_string()}'
         else:
             return f'Active positions\n{self.__data_list}'
 

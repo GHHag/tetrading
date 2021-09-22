@@ -6,7 +6,8 @@ class EntrySignals:
     Handles data for entry signals.
     """
 
-    def __init__(self):
+    def __init__(self, objective_function):
+        self.__objective_function = objective_function
         self.__signal_data_list = []
 
     @property
@@ -26,7 +27,8 @@ class EntrySignals:
 
     def __str__(self):
         if self.__signal_data_list:
-            return f'Entry signals\n{self.dataframe.sort_values(ascending=False, by="CAR25").to_string()}'
+            return f'Entry signals\n' \
+                   f'{self.dataframe.sort_values(ascending=False, by=self.__objective_function).to_string()}'
         else:
             return f'Entry signals\n{self.__signal_data_list}'
 
