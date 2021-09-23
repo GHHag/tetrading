@@ -12,5 +12,5 @@ setup(
     author='Gustav Hagenblad',
     packages=find_packages(),
     include_package_data=True,
-    install_requires=['Pandas', 'Numpy', 'Matplotlib', 'mplfinance']
+    install_requires=['pandas', 'numpy', 'matplotlib', 'mplfinance']
 )
