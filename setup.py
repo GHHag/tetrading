@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-VERSION = '0.0.1'
+VERSION = '1.0.1'
 DESCRIPTION = 'TETrading trading system development software'
 LONG_DESCRIPTION = DESCRIPTION
 
