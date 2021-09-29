@@ -170,7 +170,9 @@ def returns_distribution_plot(market_to_market_returns, mae, mfe,
     try:
         ax[1].hist(mae, bins=int(np.sqrt(len(mae))), edgecolor='black')
         ax[1].set_title('MAE distribution')
+        ax[1].yaxis.set_major_locator(MaxNLocator(integer=True))
         ax[2].hist(mfe, bins=int(np.sqrt(len(mfe))), edgecolor='black')
+        ax[2].yaxis.set_major_locator(MaxNLocator(integer=True))
         ax[2].set_title('MFE distribution')
     except ValueError:
         print('Failed to plot MAE and MFE')
