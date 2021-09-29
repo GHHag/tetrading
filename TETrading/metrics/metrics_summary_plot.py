@@ -63,8 +63,9 @@ def strategy_metrics_summary_plot(returns_data, rolling_equity, underlying_price
     axs[0, 2].set_ylabel('Frequency')
 
     axs[0, 3].hist(position_period_lengths, edgecolor='black', linewidth=1.2, orientation='horizontal',
-                   bins=int(np.sqrt(len(position_period_lengths))))
+                   bins=len(position_period_lengths))
     axs[0, 3].yaxis.set_major_locator(MaxNLocator(integer=True))
+    axs[0, 3].xaxis.set_major_locator(MaxNLocator(integer=True))
     axs[0, 3].set_title('Position Period Lengths')
     axs[0, 3].set_xlabel('Frequency')
     axs[0, 3].set_ylabel('Periods')
@@ -95,7 +96,7 @@ def strategy_metrics_summary_plot(returns_data, rolling_equity, underlying_price
         axs[1, 2].set_title('MFE, MAE, Return')
         axs[1, 2].set_ylabel('Return')
         try:
-            axs[1, 2].xaxis.set_ticks(np.arange(1, len(profitable_positions), len(profitable_positions) - 2))
+            axs[1, 2].xaxis.set_ticks(np.arange(0, len(profitable_positions), len(profitable_positions) - 1))
         except ZeroDivisionError:
             pass
         axs[1, 2].xaxis.set_tick_params(rotation=0)

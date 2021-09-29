@@ -227,6 +227,8 @@ def monte_carlo_simulation_summary_data(data_dicts_list):
     for metrics_dict in data_dicts_list:
         for metric, value in metrics_dict.items():
             summarized_data[metric].append(value)
+            if metric == 'Expectancy' and np.isnan(value):
+                summarized_data[metric].remove(value)
 
     monte_carlo_summmary_data_dict = dict()
     monte_carlo_summmary_data_dict['Ticker'] = summarized_data['Ticker'][0]
