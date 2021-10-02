@@ -6,10 +6,10 @@ LONG_DESCRIPTION = DESCRIPTION
 
 setup(
     name='TETrading',
-    version='0.0.1',
+    version='1.0.1',
     description=DESCRIPTION,
     long_description=LONG_DESCRIPTION,
-    author='Gustav Hagenblad',
+    author='GHHag',
     packages=find_packages(),
     include_package_data=True,
     install_requires=['pandas', 'numpy', 'matplotlib', 'mplfinance']

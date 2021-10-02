@@ -141,7 +141,7 @@ class SafeFPositionSizer(PositionSizer):
         return monte_carlo_sims_df
 
     def __call__(self, best_estimate_positions, period_len,
-                 forecast_positions=500, forecast_data_fraction=0.5, capital=10000, num_of_sims=1000, symbol='',
+                 forecast_positions=150, forecast_data_fraction=0.5, capital=10000, num_of_sims=1000, symbol='',
                  **kwargs):
         """
         Calls method to simulate given sequence of positions and gets the
@@ -199,7 +199,8 @@ class SafeFPositionSizer(PositionSizer):
         if dd_at_tolerated_threshold < 1:
             dd_at_tolerated_threshold = 1
         # calculate the safe fraction of capital to be used to purchase assets with
-        safe_f = 1 + ((self.__tol_pct_max_dd - dd_at_tolerated_threshold) / self.__tol_pct_max_dd)
+        #safe_f = 1 + ((self.__tol_pct_max_dd - dd_at_tolerated_threshold) / self.__tol_pct_max_dd)
+        safe_f = self.__tol_pct_max_dd / dd_at_tolerated_threshold
 
         return {
             'Ticker': symbol,

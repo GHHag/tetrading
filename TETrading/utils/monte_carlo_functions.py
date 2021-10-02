@@ -74,8 +74,8 @@ def monte_carlo_simulate_returns(positions, symbol, num_testing_periods, start_c
             trading system logic and parameters are structured.
         """
 
-        for x in position_list[:int(len(position_list) * data_amount_used)]:
-            yield x
+        for pos in position_list[:int(len(position_list) * data_amount_used)]:
+            yield pos
 
     for i in range(num_of_sims):
         sim_positions = PositionManager(symbol, (num_testing_periods * data_amount_used), start_capital,
@@ -159,7 +159,7 @@ def monte_carlo_simulations_plot(symbol, simulated_equity_curves_list, max_drawd
     for eq in simulated_equity_curves_list:
         axs[0].plot(eq, linewidth=0.5)
         axs[0].grid(True)
-        axs[0].set_title(f'{str(num_of_sims)} Monte Carlo simulations of returns ({symbol})')
+        axs[0].set_title(f'{str(num_of_sims)} Monte Carlo simulations of returns {symbol}')
         axs[0].set_xlabel('Periods')
         axs[0].set_ylabel('Equity')
 
@@ -251,8 +251,9 @@ def monte_carlo_simulation_summary_data(data_dicts_list):
     return monte_carlo_summmary_data_dict
 
 
-def monte_carlo_simulate_best_estimated_trades(best_estimate_trades, per_len, num_of_trades=500,
-                                               capital=10000, safe_f=1.0, num_of_sims=1000,
+def monte_carlo_simulate_best_estimated_trades(best_estimate_trades, per_len,
+                                               safe_f=1.0, forecast_trades=500, forecast_data_fraction=0.5,
+                                               capital=10000, num_of_sims=1000,
                                                plot_fig=False, save_fig_to_path=None, print_dataframe=False):
     """
     Simulates randomized sequences of given trades and
@@ -265,10 +266,13 @@ def monte_carlo_simulate_best_estimated_trades(best_estimate_trades, per_len, nu
     :param per_len:
         'int' : The number of periods in the data
         used to generate the collection of trades.
-    :param num_of_trades:
+    :param forecast_trades:
         Keyword arg 'int' : The number of trades to
         use in the Monte Carlo simulation.
         Default value=500
+    :param forecast_data_fraction:
+        Keyword arg 'float' : The fraction of data to use in the
+        simulation. Default value=0.5
     :param capital:
         Keyword arg 'int/float' : The amount of capital
         to purchase assets for. Default value=10000
@@ -294,26 +298,25 @@ def monte_carlo_simulate_best_estimated_trades(best_estimate_trades, per_len, nu
     """
 
     # data amount for monte carlo simulations
-    data_used = 1.0
-    if len(best_estimate_trades) >= num_of_trades:
-        data_fraction = len(best_estimate_trades) / num_of_trades
-        data_used = data_used / data_fraction
+    data_fraction = 1.0
+    if len(best_estimate_trades) >= forecast_trades:
+        data_fraction = forecast_trades / len(best_estimate_trades)
 
-    period_len = int(per_len * data_used)
+    period_len = int(per_len * data_fraction)
     # sort trades on date
-    best_estimate_trades.sort(key=lambda x: x.entry_date)
-    monte_carlo_sims_df = monte_carlo_simulate_returns(best_estimate_trades
-                                                       [-(int(len(best_estimate_trades) * data_used)):],
-                                                       '', period_len, capital, safe_f,
-                                                       plot_fig=plot_fig, num_of_sims=num_of_sims,
-                                                       data_amount_used=0.5,
-                                                       save_fig_to_path=save_fig_to_path,
-                                                       print_dataframe=print_dataframe)
-    return monte_carlo_sims_df
+    best_estimate_trades.sort(key=lambda x: x.entry_dt)
+    monte_carlo_sims_dicts_list = monte_carlo_simulate_returns(
+        best_estimate_trades[-(int(len(best_estimate_trades) * data_fraction)):],
+        '', period_len, capital, safe_f,
+        plot_fig=plot_fig, num_of_sims=num_of_sims, data_amount_used=forecast_data_fraction,
+        save_fig_to_path=save_fig_to_path, print_dataframe=print_dataframe
+    )
+
+    return monte_carlo_sims_dicts_list
 
 
-def monte_carlo_simulate_trade_sequence(trades, num_testing_periods, start_capital, capital_fraction=1.0,
-                                        num_of_sims=1000, data_amount_used=0.5, symbol='', print_dataframe=True):
+#def monte_carlo_simulate_trade_sequence(trades, num_testing_periods, start_capital, capital_fraction=1.0,
+#                                        num_of_sims=1000, data_amount_used=0.5, symbol='', print_dataframe=True):
     """
     Randomizes the order of a sequence of trades, calculates
     metrics for system evaluation and stores them in a Pandas
@@ -348,11 +351,11 @@ def monte_carlo_simulate_trade_sequence(trades, num_testing_periods, start_capit
         'Pandas DataFrame'
     """
 
-    monte_carlo_sims_df = pd.DataFrame()
+    """monte_carlo_sims_df = pd.DataFrame()
 
     final_equity = []
     max_drawdowns_list = []
-    sim_trades = None
+    sim_trades = None"""
 
     def generate_trade_sequence(trades_list, **kwargs):
         """
@@ -369,7 +372,7 @@ def monte_carlo_simulate_trade_sequence(trades, num_testing_periods, start_capit
             are never used, but might be provided depending on how the
             trading system logic and parameters are structured.
         """
-
+    """
         for trade in trades_list[:int(len(trades_list) * data_amount_used)]:
             yield trade
 
@@ -397,10 +400,10 @@ def monte_carlo_simulate_trade_sequence(trades, num_testing_periods, start_capit
     if print_dataframe:
         print(monte_carlo_sims_df.to_string())
 
-    return monte_carlo_sims_df
+    return monte_carlo_sims_df"""
 
 
-def calculate_safe_f(best_estimate_trades, period_len, tolerated_pct_dd, tolerated_dd_percentile,
+def calculate_safe_f(best_estimate_trades, period_len, tolerated_pct_max_dd, max_dd_pctl_threshold,
                      forecast_trades=500, forecast_data_fraction=0.5, capital=10000, num_of_sims=2500,
                      symbol='', print_dataframe=False):
     """
@@ -413,10 +416,10 @@ def calculate_safe_f(best_estimate_trades, period_len, tolerated_pct_dd, tolerat
         'List' : A sequence of trades.
     :param period_len:
         'int' : The number or periods in the dataset.
-    :param tolerated_pct_dd:
+    :param tolerated_pct_max_dd:
         'float/int' : The percentage amount of drawdown that
         will be tolerated.
-    :param tolerated_dd_percentile:
+    :param max_dd_pctl_threshold:
         'float' : The percentile of the distribution of maximum
         drawdowns to act as a threshold for the tolerated maximum
         drawdown, e.g. when declaring the variables with the
@@ -455,14 +458,16 @@ def calculate_safe_f(best_estimate_trades, period_len, tolerated_pct_dd, tolerat
 
     period_len = int(period_len * split_data_fraction)
     # sort trades on date
-    best_estimate_trades.sort(key=lambda tr: tr.entry_date)
-    monte_carlo_sims_df = monte_carlo_simulate_trade_sequence(
-        best_estimate_trades[-(int(len(best_estimate_trades) * split_data_fraction)):], period_len, capital,
-        num_of_sims=num_of_sims, data_amount_used=forecast_data_fraction, symbol=symbol,
+    best_estimate_trades.sort(key=lambda tr: tr.entry_dt)
+
+    monte_carlo_sims_dicts_list = monte_carlo_simulate_returns(
+        best_estimate_trades[-(int(len(best_estimate_trades) * split_data_fraction)):], symbol, period_len,
+        start_capital=capital, num_of_sims=num_of_sims, data_amount_used=forecast_data_fraction,
         print_dataframe=print_dataframe)
 
-    max_dds = sorted(monte_carlo_sims_df['Max drawdown (%)'].to_list())
-    dd_at_tolerated_percentile = max_dds[int(len(max_dds) * tolerated_dd_percentile)]
-    safe_f = (dd_at_tolerated_percentile - tolerated_pct_dd) / dd_at_tolerated_percentile
+    max_dds = sorted([dd['Max drawdown (%)'] for dd in monte_carlo_sims_dicts_list])
+    dd_at_tolerated_percentile = max_dds[int(len(max_dds) * max_dd_pctl_threshold)]
+
+    safe_f = tolerated_pct_max_dd / dd_at_tolerated_percentile
 
     return safe_f
