@@ -1,4 +1,0 @@
-Pandas
-Numpy
-Matplotlib
-mplfinance

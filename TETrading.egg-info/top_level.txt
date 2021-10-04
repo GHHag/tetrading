@@ -1,3 +1,0 @@
-TETrading
-data
-indicator_feature_workshop
