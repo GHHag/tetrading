@@ -199,7 +199,6 @@ class SafeFPositionSizer(PositionSizer):
         if dd_at_tolerated_threshold < 1:
             dd_at_tolerated_threshold = 1
         # calculate the safe fraction of capital to be used to purchase assets with
-        #safe_f = 1 + ((self.__tol_pct_max_dd - dd_at_tolerated_threshold) / self.__tol_pct_max_dd)
         safe_f = self.__tol_pct_max_dd / dd_at_tolerated_threshold
 
         return {

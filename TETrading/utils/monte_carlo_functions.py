@@ -251,19 +251,19 @@ def monte_carlo_simulation_summary_data(data_dicts_list):
     return monte_carlo_summmary_data_dict
 
 
-def monte_carlo_simulate_best_estimated_trades(best_estimate_trades, per_len,
-                                               safe_f=1.0, forecast_trades=500, forecast_data_fraction=0.5,
-                                               capital=10000, num_of_sims=1000,
-                                               plot_fig=False, save_fig_to_path=None, print_dataframe=False):
+def monte_carlo_simulate_positions(positions, period_len,
+                                   safe_f=1.0, forecast_trades=500, forecast_data_fraction=0.5,
+                                   capital=10000, num_of_sims=1000,
+                                   plot_fig=False, save_fig_to_path=None, print_dataframe=False):
     """
     Simulates randomized sequences of given trades and
     returns data generated from the simulations.
 
     Parameters
     ----------
-    :param best_estimate_trades:
-        'List' : A collection of trades.
-    :param per_len:
+    :param positions:
+        'List' : A collection of Position objects.
+    :param period_len:
         'int' : The number of periods in the data
         used to generate the collection of trades.
     :param forecast_trades:
@@ -298,16 +298,16 @@ def monte_carlo_simulate_best_estimated_trades(best_estimate_trades, per_len,
     """
 
     # data amount for monte carlo simulations
-    data_fraction = 1.0
-    if len(best_estimate_trades) >= forecast_trades:
-        data_fraction = forecast_trades / len(best_estimate_trades)
+    split_data_fraction = 1.0
+    if len(positions) >= forecast_trades:
+        split_data_fraction = forecast_trades / len(positions)
 
-    period_len = int(per_len * data_fraction)
+    period_len = int(period_len * split_data_fraction)
     # sort trades on date
-    best_estimate_trades.sort(key=lambda x: x.entry_dt)
+    positions.sort(key=lambda x: x.entry_dt)
+
     monte_carlo_sims_dicts_list = monte_carlo_simulate_returns(
-        best_estimate_trades[-(int(len(best_estimate_trades) * data_fraction)):],
-        '', period_len, capital, safe_f,
+        positions[-(int(len(positions) * split_data_fraction)):], '', period_len, capital, safe_f,
         plot_fig=plot_fig, num_of_sims=num_of_sims, data_amount_used=forecast_data_fraction,
         save_fig_to_path=save_fig_to_path, print_dataframe=print_dataframe
     )
@@ -315,95 +315,7 @@ def monte_carlo_simulate_best_estimated_trades(best_estimate_trades, per_len,
     return monte_carlo_sims_dicts_list
 
 
-#def monte_carlo_simulate_trade_sequence(trades, num_testing_periods, start_capital, capital_fraction=1.0,
-#                                        num_of_sims=1000, data_amount_used=0.5, symbol='', print_dataframe=True):
-    """
-    Randomizes the order of a sequence of trades, calculates
-    metrics for system evaluation and stores them in a Pandas
-    DataFrame which is returned by the function.
-
-    Parameters
-    ----------
-    :param trades:
-        'List' : A collection of trades.
-    :param num_testing_periods:
-        'int' : The number of periods in the dataset.
-    :param start_capital:
-        'int/float' : The amount of starting capital.
-    :param capital_fraction:
-        Keyword arg 'float' : The fraction of capital to be used
-        to purchase assets. Default value=1.0
-    :param num_of_sims:
-        Keyword arg 'int' : The number of simulations to run.
-        Default value=1000
-    :param data_amount_used:
-        Keyword arg 'float' : The fraction of historic trades to
-        use in the simulation output. Default value=0.5
-    :param symbol:
-        Keyword arg 'str' : The symbol/ticker of an asset.
-        Default value='', empty string
-    :param print_dataframe:
-        Keyword arg 'Boolean' : True/False decides if the DataFrame
-        with metrics and statistics should be printed to console.
-        Default value=True
-
-    :return:
-        'Pandas DataFrame'
-    """
-
-    """monte_carlo_sims_df = pd.DataFrame()
-
-    final_equity = []
-    max_drawdowns_list = []
-    sim_trades = None"""
-
-    def generate_trade_sequence(trades_list, **kwargs):
-        """
-        Generates positions from given list of objects of type Position.
-        The list will be sliced at a percentage of the total amount of
-        positions, determined by 'data_amount_used'.
-
-        Parameters
-        ----------
-        :param trades_list:
-            'List' : A list of Position objects.
-        :param kwargs:
-            'Dict' : A dict with additional keyword arguments which
-            are never used, but might be provided depending on how the
-            trading system logic and parameters are structured.
-        """
-    """
-        for trade in trades_list[:int(len(trades_list) * data_amount_used)]:
-            yield trade
-
-    for i in range(num_of_sims):
-        sim_trades = PositionManager(symbol, (num_testing_periods * data_amount_used), start_capital, capital_fraction)
-        pos_list = random.sample(trades, len(trades))
-        sim_trades.generate_positions(generate_trade_sequence, pos_list)
-
-        monte_carlo_sims_df = monte_carlo_sims_df.append(sim_trades.metrics.summary_data_dict, ignore_index=True)
-
-        final_equity.append(sim_trades.metrics.equity_list[-1])
-        max_drawdowns_list.append(sim_trades.metrics.max_drawdown)
-
-    final_equity = sorted(final_equity)
-    car25 = calculate_cagr(sim_trades.metrics.start_capital, final_equity[(int(len(final_equity) * 0.25))],
-                           sim_trades.metrics.num_testing_periods)
-    car75 = calculate_cagr(sim_trades.metrics.start_capital, final_equity[(int(len(final_equity) * 0.75))],
-                           sim_trades.metrics.num_testing_periods)
-
-    car_series = pd.Series()
-    car_series['CAR25'] = car25
-    car_series['CAR75'] = car75
-    monte_carlo_sims_df = monte_carlo_sims_df.append(car_series, ignore_index=True)
-
-    if print_dataframe:
-        print(monte_carlo_sims_df.to_string())
-
-    return monte_carlo_sims_df"""
-
-
-def calculate_safe_f(best_estimate_trades, period_len, tolerated_pct_max_dd, max_dd_pctl_threshold,
+def calculate_safe_f(positions, period_len, tolerated_pct_max_dd, max_dd_pctl_threshold,
                      forecast_trades=500, forecast_data_fraction=0.5, capital=10000, num_of_sims=2500,
                      symbol='', print_dataframe=False):
     """
@@ -412,8 +324,8 @@ def calculate_safe_f(best_estimate_trades, period_len, tolerated_pct_max_dd, max
 
     Parameters
     ----------
-    :param best_estimate_trades:
-        'List' : A sequence of trades.
+    :param positions:
+        'List' : A list of Position objects.
     :param period_len:
         'int' : The number or periods in the dataset.
     :param tolerated_pct_max_dd:
@@ -453,21 +365,21 @@ def calculate_safe_f(best_estimate_trades, period_len, tolerated_pct_max_dd, max
     """
 
     split_data_fraction = 1.0
-    if len(best_estimate_trades) >= forecast_trades:
-        split_data_fraction = forecast_trades / len(best_estimate_trades)
+    if len(positions) >= forecast_trades:
+        split_data_fraction = forecast_trades / len(positions)
 
     period_len = int(period_len * split_data_fraction)
     # sort trades on date
-    best_estimate_trades.sort(key=lambda tr: tr.entry_dt)
+    positions.sort(key=lambda tr: tr.entry_dt)
 
     monte_carlo_sims_dicts_list = monte_carlo_simulate_returns(
-        best_estimate_trades[-(int(len(best_estimate_trades) * split_data_fraction)):], symbol, period_len,
+        positions[-(int(len(positions) * split_data_fraction)):], symbol, period_len,
         start_capital=capital, num_of_sims=num_of_sims, data_amount_used=forecast_data_fraction,
         print_dataframe=print_dataframe)
 
     max_dds = sorted([dd['Max drawdown (%)'] for dd in monte_carlo_sims_dicts_list])
-    dd_at_tolerated_percentile = max_dds[int(len(max_dds) * max_dd_pctl_threshold)]
+    dd_at_tolerated_threshold = max_dds[int(len(max_dds) * max_dd_pctl_threshold)]
 
-    safe_f = tolerated_pct_max_dd / dd_at_tolerated_percentile
+    safe_f = tolerated_pct_max_dd / dd_at_tolerated_threshold
 
     return safe_f
