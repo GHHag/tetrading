@@ -3,7 +3,7 @@ from TETrading.metrics.metrics import Metrics
 
 class PositionManager:
     """
-    Manages a collection of Position objects and metrics about them.
+    Manages a collection of Position objects and their metrics.
 
     Parameters
     ----------
