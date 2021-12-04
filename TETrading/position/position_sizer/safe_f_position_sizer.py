@@ -203,7 +203,10 @@ class SafeFPositionSizer(PositionSizer):
 
         return {
             'Ticker': symbol,
-            'CAR25': monte_carlo_sims_df.iloc[-1]['CAR25'],
-            'CAR75': monte_carlo_sims_df.iloc[-1]['CAR75'],
-            'Safe-F': safe_f
+            'Sharpe ratio': kwargs['metrics_dict']['Sharpe ratio'],
+            'Profit factor': kwargs['metrics_dict']['Profit factor'],
+            'Expectancy': kwargs['metrics_dict']['Expectancy'],
+            'CAR25': round(monte_carlo_sims_df.iloc[-1]['CAR25'], 3),
+            'CAR75': round(monte_carlo_sims_df.iloc[-1]['CAR75'], 3),
+            'Safe-F': round(safe_f, 3),
         }
