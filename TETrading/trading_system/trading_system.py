@@ -92,12 +92,77 @@ class TradingSystem:
         print('\nMonte carlo simulation stats (' + str(num_of_monte_carlo_sims) + ' simulations):\n',
               self.__monte_carlo_simulations_df.to_string())
 
+    def run_monte_carlo_simulation(self, safe_f,
+                                    forecast_trades=500, forecast_data_fraction=0.5,
+                                    capital=10000, num_of_sims=1500,
+                                    plot_fig=False, save_fig_to_path=None, print_dataframe=False):
+        """
+        Simulates randomized sequences of given trades and
+        returns data generated from the simulations.
+
+        Parameters
+        ----------
+        :param positions:
+            'List' : A collection of Position objects.
+        :param period_len:
+            'int' : The number of periods in the data
+            used to generate the collection of trades.
+        :param forecast_trades:
+            Keyword arg 'int' : The number of trades to
+            use in the Monte Carlo simulation.
+            Default value=500
+        :param forecast_data_fraction:
+            Keyword arg 'float' : The fraction of data to use in the
+            simulation. Default value=0.5
+        :param capital:
+            Keyword arg 'int/float' : The amount of capital
+            to purchase assets for. Default value=10000
+        :param safe_f:
+            Keyword arg 'float' : The fraction of capital to be
+            used to purchase assets. Default value=1.0
+        :param num_of_sims:
+            Keyword arg 'int' : The number of simulation to run.
+            Default value=1000
+        :param plot_fig:
+            Keyword arg 'Boolean' : True/False decides whether
+            to plot a figure with data from the Monte Carlo
+            simulations or not. Default value=False
+        :param save_fig_to_path:
+            Keyword arg 'None/str' : Provide a file path as a
+            string to save the plot as a file. Default value=None
+        :param print_dataframe:
+            Keyword arg 'Boolean' : True/False decides whether to print
+            the dataframe to console or not. Default value=False
+
+        :return:
+            'Pandas DataFrame'
+        """
+
+        # data amount for monte carlo simulations
+        split_data_fraction = 1.0
+        if len(self.__full_pos_list) >= forecast_trades:
+            split_data_fraction = forecast_trades / len(self.__full_pos_list)
+
+        period_len = int(self.__total_period_len * split_data_fraction)
+        # sort trades on date
+        self.__full_pos_list.sort(key=lambda x: x.entry_dt)
+
+        monte_carlo_sims_dicts_list = monte_carlo_simulate_returns(
+            self.__full_pos_list[-(int(len(self.__full_pos_list) * split_data_fraction)):], 
+            '', period_len, capital, safe_f,
+            plot_fig=plot_fig, num_of_sims=num_of_sims, data_amount_used=forecast_data_fraction,
+            save_fig_to_path=save_fig_to_path, print_dataframe=print_dataframe
+        )
+
+        return monte_carlo_sims_dicts_list
+        
     def __call__(
             self, *args, capital=10000, capital_fraction=1.0, yearly_periods=251,
             plot_performance_summary=False, save_summary_plot_to_path=None, system_analysis_to_csv_path=None,
             plot_returns_distribution=False, save_returns_distribution_plot_to_path=None,
             run_monte_carlo_sims=False, num_of_monte_carlo_sims=2500, monte_carlo_data_amount=0.4,
             plot_monte_carlo=False, print_monte_carlo_df=False, monte_carlo_analysis_to_csv_path=None,
+            write_signals_to_file_path=None, write_signals_to_db=False,
             **kwargs
     ):
         """
@@ -152,12 +217,17 @@ class TradingSystem:
         """
 
         for instrument, data in self.__data_dict.items():
-            if 'Close' in data:
-                asset_price_series = [float(close) for close in data['Close']]
-            elif f'Close_{instrument}' in data:
-                asset_price_series = [float(close) for close in data[f'Close_{instrument}']]
-            else:
-                raise Exception('Column missing in DataFrame')
+            try:
+                if 'Close' in data:
+                    asset_price_series = [float(close) for close in data['Close']]
+                elif f'Close_{instrument}' in data:
+                    asset_price_series = [float(close) for close in data[f'Close_{instrument}']]
+                else:
+                    raise Exception('Column missing in DataFrame')
+            except TypeError:
+                print('TypeError', instrument)
+                x = input('Enter to proceed')
+                continue
 
             pos_manager = PositionManager(instrument, data.shape[0], capital, capital_fraction,
                                           asset_price_series=asset_price_series)
@@ -233,6 +303,10 @@ class TradingSystem:
             self.__metrics_df.to_csv(system_analysis_to_csv_path)
 
         print(self.__signal_handler)
+        if write_signals_to_file_path:
+            self.__signal_handler.write_to_csv(write_signals_to_file_path, self.__strategy_function.__name__)
+        if write_signals_to_db:
+            self.__signal_handler.write_to_db(self.__strategy_function.__name__)
 
         returns_distribution_plot(self.__full_market_to_market_returns_list, self.__full_mae_list, self.__full_mfe_list,
                                   plot_fig=plot_returns_distribution,
