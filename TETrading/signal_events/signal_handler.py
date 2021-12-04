@@ -2,6 +2,10 @@ from TETrading.signal_events.signals.active_position_signal import ActivePositio
 from TETrading.signal_events.signals.entry_signal import EntrySignals
 from TETrading.signal_events.signals.exit_signal import ExitSignals
 
+#from systems_mongodb.system_collections import insert_system, \
+#    insert_entry_signal_data, insert_active_pos_data, insert_exit_signal_data
+#from systems_mongodb.dal import dal_get_db_client, get_system_id, generate_system_id
+
 
 class SignalHandler:
     """
@@ -14,7 +18,12 @@ class SignalHandler:
         self.__entry_signals = EntrySignals(objective_function_str)
         self.__exit_signals = ExitSignals()
         self.__active_positions = ActivePositionsSignals(objective_function_str)
+        self.__entry_signal_given = False
 
+    @property
+    def entry_signal_given(self):
+        return self.__entry_signal_given
+        
     def handle_entry_signal(self, symbol, data_dict):
         """
         Calls the EntrySignals members add_signal_data method,
@@ -28,6 +37,7 @@ class SignalHandler:
             'Dict' : Data to be handled by the EntrySignals member.
         """
 
+        self.__entry_signal_given = True
         self.__entry_signals.add_signal_data(symbol, data_dict)
 
     def handle_active_position(self, symbol, data_dict):
@@ -81,7 +91,53 @@ class SignalHandler:
 
         self.__active_positions.add_evaluation_data(evaluation_dict)
         self.__entry_signals.add_evaluation_data(evaluation_dict)
+        self.__entry_signal_given = False
 
+    def write_to_csv(self, path, system_name):
+        if self.__entry_signals.dataframe is not None:
+            with open(path, 'a') as file:
+                file.write("\n" + system_name + "\n")
+
+            self.__entry_signals.dataframe.to_csv(path, mode='a')
+            self.__exit_signals.dataframe.to_csv(path, mode='a')
+
+    #def write_to_db(self, system_name):
+        """
+        Insert data into database from the dataframes that holds data 
+        and stats for signals and positions. If a system with the given
+        name is not found in an attempt to query it from the database it
+        will be inserted with a generated int id.
+
+        Parameters
+        ----------
+        :param system_name:
+            'str' : The name of a system which by it will be identified in
+            in the database.
+        """
+
+        """db_client = dal_get_db_client()
+        system_id = get_system_id(system_name)
+
+        if self.__entry_signals.dataframe is not None:
+            if not system_id:
+                system_id = generate_system_id()
+                insert_system(db_client, {'_id': system_id, 'name': system_name})
+            else:
+                system_id = system_id['_id']
+
+            insert_entry_signal_data(db_client, system_id, system_name, 
+                                     self.__entry_signals.dataframe.to_json(orient='table'))
+
+        if self.__active_positions.dataframe is not None:
+            if system_id:
+                insert_active_pos_data(db_client, system_id, system_name,
+                                       self.__active_positions.dataframe.to_json(orient='table'))
+
+        if self.__exit_signals.dataframe is not None:
+            if system_id:
+                insert_exit_signal_data(db_client, system_id, system_name,
+                                        self.__exit_signals.dataframe.to_json(orient='table'))"""
+        
     def __str__(self):
         return f'\n{self.__active_positions}\n\n{self.__entry_signals}\n\n{self.__exit_signals}'
 
