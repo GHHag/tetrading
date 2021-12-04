@@ -12,6 +12,8 @@ class Metrics:
     Iterates over a collection of Position objects, calculates and
     holds metrics as member variables.
 
+    TODO: Refactor and reimplement functionality using Pandas.
+
     Parameters
     ----------
     symbol : 'str'
