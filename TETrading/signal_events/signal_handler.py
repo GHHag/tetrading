@@ -101,7 +101,7 @@ class SignalHandler:
             self.__entry_signals.dataframe.to_csv(path, mode='a')
             self.__exit_signals.dataframe.to_csv(path, mode='a')
 
-    #def write_to_db(self, system_name):
+    #def insert_into_db(self, system_name):
         """
         Insert data into database from the dataframes that holds data 
         and stats for signals and positions. If a system with the given
