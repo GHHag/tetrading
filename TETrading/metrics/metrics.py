@@ -312,7 +312,7 @@ class Metrics:
             The yearly return of a risk free asset.
 
         :return:
-            'float'
+            'Decimal'
         """
 
         excess_returns = np.array([
