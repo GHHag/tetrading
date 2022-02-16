@@ -5,8 +5,8 @@ DESCRIPTION = 'TETrading trading system development software'
 LONG_DESCRIPTION = DESCRIPTION
 
 setup(
-    name='tet',
-    version='0.1.0',
+    name='TETrading',
+    version=VERSION
     description=DESCRIPTION,
     long_description=LONG_DESCRIPTION,
     author='GHHag',
