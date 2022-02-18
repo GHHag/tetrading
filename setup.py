@@ -6,7 +6,7 @@ LONG_DESCRIPTION = DESCRIPTION
 
 setup(
     name='TETrading',
-    version=VERSION
+    version=VERSION,
     description=DESCRIPTION,
     long_description=LONG_DESCRIPTION,
     author='GHHag',
