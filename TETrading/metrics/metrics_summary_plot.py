@@ -222,7 +222,8 @@ def alt_system_metrics_summary_plot(
             min(underlying_price_series), max(underlying_price_series)*0.9, 
             f'Sharpe ratio: {round(underlying_sharpe, 3)}\n'
             f'Max drawdown (%): {round(underlying_max_dd, 2)}\n'
-            f'CAGR (%): {round(underlying_cagr, 2)}'
+            f'CAGR (%): {round(underlying_cagr, 2)}',
+            horizontalalignment='center'
         )
 
     returns = np.array(list(map(float, returns_data)))
@@ -256,12 +257,12 @@ def alt_system_metrics_summary_plot(
         text_x_coord = min(pctl80_underlying_returns)
 
     axs[0, 2].yaxis.set_major_locator(MaxNLocator(integer=True))
-    axs[0, 2].set_title('Returns Distribution')
+    axs[0, 2].set_title('Returns (80th percentile)')
     axs[0, 2].set_xlabel('Return')
     axs[0, 2].set_ylabel('Frequency')
     vals, counts = np.unique(pctl80_returns, return_counts=True)
-    axs[0, 2].annotate(
-        distribution_stats_text, (text_x_coord, np.max(counts) * 0.5)
+    axs[0, 2].text(
+        text_x_coord, np.max(counts) * 0.5, distribution_stats_text
     )
 
     axs[0, 3].hist(
@@ -278,7 +279,7 @@ def alt_system_metrics_summary_plot(
         [x for x in range(len(returns_data))], sorted(returns_data), 
         markerfmt=' ', use_line_collection=True
     )
-    axs[1, 0].set_title('Sorted Returns Distribution')
+    axs[1, 0].set_title('Sorted Returns')
     axs[1, 0].set_xlabel('Periods')
     axs[1, 0].set_ylabel('Return')
 
@@ -299,7 +300,7 @@ def alt_system_metrics_summary_plot(
 
         ch_df.plot(
             x='Positions in Historic Order', y='MFE', kind='bar', 
-            ax=axs[1, 2], color='green'
+            ax=axs[1, 2], color='lime'
         )
         ch_df.plot(
             x='Positions in Historic Order', y='MAE', kind='bar', 

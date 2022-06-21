@@ -103,7 +103,7 @@ class SignalHandler:
             if self.__exit_signals.dataframe is not None:
                 self.__exit_signals.dataframe.to_csv(path, mode='a')
 
-    def insert_into_db(self, db_insert_funcs, system_name, get_db_client_func):
+    def insert_into_db(self, db_insert_funcs, system_name):
         """
         Insert data into database from the dataframes that holds data 
         and stats for signals and positions. If a system with the given
@@ -123,13 +123,11 @@ class SignalHandler:
         :param system_name:
             'str' : The name of a system which it will be identified by in
             in the database.
-        :param get_db_client_func:
-            'function': A function that returns a database client.
         """
 
         if self.__entry_signals.dataframe is not None:
             insert_successful = db_insert_funcs['entry'](
-                system_name, get_db_client_func, self.__entry_signals.dataframe.to_json(orient='table')
+                system_name, self.__entry_signals.dataframe.to_json(orient='table')
             )
 
             if not insert_successful:
@@ -137,7 +135,7 @@ class SignalHandler:
 
         if self.__active_positions.dataframe is not None:
             insert_successful = db_insert_funcs['active'](
-                system_name, get_db_client_func, self.__active_positions.dataframe.to_json(orient='table')
+                system_name, self.__active_positions.dataframe.to_json(orient='table')
             )
 
             if not insert_successful:
@@ -145,7 +143,7 @@ class SignalHandler:
 
         if self.__exit_signals.dataframe is not None:
             insert_successful = db_insert_funcs['exit'](
-                system_name, get_db_client_func, self.__exit_signals.dataframe.to_json(orient='table')
+                system_name, self.__exit_signals.dataframe.to_json(orient='table')
             )
 
             if not insert_successful:

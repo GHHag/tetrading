@@ -2,6 +2,7 @@ import os
 from inspect import isfunction
 
 import pandas as pd
+import numpy as np
 
 from TETrading.position.position_manager import PositionManager
 from TETrading.trading_system.trading_session import TradingSession
@@ -31,14 +32,14 @@ class TradingSystem:
         The logic used to exit a position.
     pos_sizer : Subclass object of 'PositionSizer'
         An object of a class with functionality for sizing positions.
-    get_db_client_func : Keyword arg 'None/function'
-        A function that returns necessities for connecting to a database.
+    db_client : Keyword arg 'None/function'
+        A db client used to insert system data to a database.
         Default value=None
     """
 
     def __init__(
         self, system_name, data_dict, entry_logic_function, exit_logic_function, 
-        pos_sizer, get_db_client_func=None
+        pos_sizer, db_client=None
     ):
         self.__system_name = system_name
         assert isinstance(data_dict, dict), \
@@ -53,13 +54,13 @@ class TradingSystem:
         assert issubclass(type(pos_sizer), PositionSizer), \
             "Parameter 'pos_sizer' must be an object inheriting from the PositionSizer class."
         self.__pos_sizer = pos_sizer
-        self.__get_db_client_func = get_db_client_func
+        self.__db_client = db_client
 
         self.__total_period_len = 0
         self.__full_pos_list = []
-        self.__full_market_to_market_returns_list = []
-        self.__full_mae_list = []
-        self.__full_mfe_list = []
+        self.__full_market_to_market_returns_list = np.array([])
+        self.__full_mae_list = np.array([])
+        self.__full_mfe_list = np.array([])
 
         # Instantiate SignalHandler object
         self.__signal_handler = SignalHandler()
@@ -267,7 +268,7 @@ class TradingSystem:
                 continue
 
             pos_manager = PositionManager(
-                instrument, data.shape[0], capital, capital_fraction, 
+                instrument, len(data), capital, capital_fraction, 
                 asset_price_series=asset_price_series
             )
             trading_session = TradingSession(
@@ -328,20 +329,30 @@ class TradingSystem:
                     )
                 )
 
-            if insert_data_to_db_bool and single_symbol_pos_list_db_insert_func:
+            # insert_data_to_db_bool works inverse when it comes to inserting
+            # position lists for single symbols
+            if not insert_data_to_db_bool and single_symbol_pos_list_db_insert_func:
                 single_symbol_pos_list_db_insert_func(
-                    self.__system_name, self.__get_db_client_func, 
-                    instrument, pos_manager.metrics.positions[:]
+                    self.__system_name, instrument, 
+                    pos_manager.metrics.positions[:], len(data)
                 )
 
             self.__full_pos_list += pos_manager.metrics.positions[:]
             self.__total_period_len += len(data)
 
-            if pos_manager.metrics.market_to_market_returns_list:
-                self.__full_market_to_market_returns_list += \
-                    pos_manager.metrics.market_to_market_returns_list[:]
-                self.__full_mae_list += pos_manager.metrics.w_mae_list[:]
-                self.__full_mfe_list += pos_manager.metrics.mfe_list[:]
+            if len(pos_manager.metrics.market_to_market_returns_list) > 0:
+                self.__full_market_to_market_returns_list = np.concatenate(
+                    (
+                        self.__full_market_to_market_returns_list,
+                        pos_manager.metrics.market_to_market_returns_list
+                    ), axis=0
+                )
+                self.__full_mae_list = np.concatenate(
+                    (self.__full_mae_list, pos_manager.metrics.w_mae_list), axis=0
+                )
+                self.__full_mfe_list = np.concatenate(
+                    (self.__full_mfe_list, pos_manager.metrics.mfe_list), axis=0                    
+                )
 
         self._print_metrics_df()
 
@@ -358,13 +369,13 @@ class TradingSystem:
             self.__signal_handler.write_to_csv(
                 write_signals_to_file_path, self.__system_name
             )
-        if insert_data_to_db_bool and self.__get_db_client_func and signal_handler_db_insert_funcs:
+        if insert_data_to_db_bool and signal_handler_db_insert_funcs:
             self.__signal_handler.insert_into_db(
-                signal_handler_db_insert_funcs, self.__system_name, self.__get_db_client_func
+                signal_handler_db_insert_funcs, self.__system_name
             )
         if insert_data_to_db_bool and full_pos_list_db_insert_func:
             full_pos_list_db_insert_func(
-                self.__system_name, self.__get_db_client_func,
+                self.__system_name,
                 sorted(self.__full_pos_list, key=lambda x: x.entry_dt)[-full_pos_list_slice_param:]
             )
 

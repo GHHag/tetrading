@@ -185,6 +185,7 @@ class TradingSession:
                     'signal_index': len(self.__dataframe), 
                     'signal_dt': self.__dataframe[datetime_col_name].iloc[-1], 
                     'symbol': self.__symbol, 
+                    'direction': direction,
                     'periods_in_position': len(position.returns_list), 
                     'unrealised_return': position.unrealised_return
                 }
@@ -200,6 +201,7 @@ class TradingSession:
                         'signal_index': len(self.__dataframe), 
                         'signal_dt': self.__dataframe[datetime_col_name].iloc[-1], 
                         'symbol': self.__symbol, 
+                        'direction': direction,
                         'periods_in_position': len(position.returns_list),
                         'unrealised_return': position.unrealised_return
                     }

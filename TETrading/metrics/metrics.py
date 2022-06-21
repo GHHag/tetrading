@@ -33,59 +33,87 @@ class Metrics:
         self.__start_capital = start_capital
         self.__positions = []
         self.__num_testing_periods = num_testing_periods
-        self.__equity_list = [self.__start_capital]
-        self.__profit_loss_list = []
-        self.__returns_list = []
-        self.__market_to_market_returns_list = []
-        self.__pos_net_results_list = []
-        self.__pos_gross_results_list = []
-        self.__pos_period_lengths_list = []
+        self.__equity_list = np.array([self.__start_capital])
+        self.__profit_loss_list = np.array([])
+        self.__returns_list = np.array([])
+        self.__market_to_market_returns_list = np.array([])
+        self.__pos_net_results_list = np.array([])
+        self.__pos_gross_results_list = np.array([])
+        self.__pos_period_lengths_list = np.array([])
 
-        self.__profitable_pos_list = []
-        self.__profitable_pos_returns_list = []
-        self.__net_wins_list = []
-        self.__gross_wins_list = []
-        self.__loosing_pos_list = []
-        self.__net_losses_list = []
-        self.__gross_losses_list = []
+        self.__profitable_pos_list = np.array([])
+        self.__profitable_pos_returns_list = np.array([])
+        self.__net_wins_list = np.array([])
+        self.__gross_wins_list = np.array([])
+        self.__loosing_pos_list = np.array([])
+        self.__net_losses_list = np.array([])
+        self.__gross_losses_list = np.array([])
 
-        self.__mfe_list = []
-        self.__mae_list = []
-        self.__w_mae_list = []
+        self.__mfe_list = np.array([])
+        self.__mae_list = np.array([])
+        self.__w_mae_list = np.array([])
         self.__mae_mfe_dataframe = pd.DataFrame()
 
         for pos in iter(positions):
             self.__positions.append(pos)
-            if pos.fixed_position_size:
-                tot_entry_cap = pos.entry_price * pos.position_size
-                pos_value = tot_entry_cap
-                for mtm_return in pos.market_to_market_returns_list:
-                    self.__equity_list.append(round(self.__equity_list[-1] + pos_value * (mtm_return / 100), 2))
-                    pos_value += pos_value * (mtm_return / 100)
-                self.__equity_list[-1] -= pos.commission
-            elif not pos.fixed_position_size:
-                self.__equity_list.append(self.__equity_list[-1] + pos.net_result - pos.commission)
+            tot_entry_cap = pos.entry_price * pos.position_size
+            pos_value = tot_entry_cap
+            for mtm_return in pos.market_to_market_returns_list:
+                self.__equity_list = np.append(
+                    self.__equity_list, 
+                    round(self.__equity_list[-1] + pos_value * (mtm_return / 100), 2)
+                )
+                pos_value += pos_value * (mtm_return / 100)
+            self.__equity_list[-1] -= pos.commission
 
-            self.__profit_loss_list.append(float(pos.profit_loss))
-            self.__returns_list.append(float(pos.position_return))
-            self.__market_to_market_returns_list += pos.market_to_market_returns_list
-            self.__pos_net_results_list.append(pos.net_result)
-            self.__pos_gross_results_list.append(pos.gross_result)
-            self.__pos_period_lengths_list.append(len(pos.returns_list))
+            self.__profit_loss_list = np.append(
+                self.__profit_loss_list, float(pos.profit_loss)
+            )
+            self.__returns_list = np.append(
+                self.__returns_list, float(pos.position_return)
+            )
+            self.__market_to_market_returns_list = np.concatenate(
+                (self.__market_to_market_returns_list, pos.market_to_market_returns_list), axis=0
+            )
+            self.__pos_net_results_list = np.append(
+                self.__pos_net_results_list, pos.net_result
+            )
+            self.__pos_gross_results_list = np.append(
+                self.__pos_gross_results_list, pos.gross_result
+            )
+            self.__pos_period_lengths_list = np.append(
+                self.__pos_period_lengths_list, len(pos.returns_list)
+            )
 
             if pos.profit_loss > 0:
-                self.__profitable_pos_list.append(float(pos.profit_loss))
-                self.__profitable_pos_returns_list.append(pos.position_return)
-                self.__net_wins_list.append(pos.net_result)
-                self.__gross_wins_list.append(pos.gross_result)
-                self.__w_mae_list.append(float(pos.mae))
+                self.__profitable_pos_list = np.append(
+                    self.__profitable_pos_list, float(pos.profit_loss)
+                )
+                self.__profitable_pos_returns_list = np.append(
+                    self.__profitable_pos_returns_list, pos.position_return
+                )
+                self.__net_wins_list = np.append(
+                    self.__net_wins_list, pos.net_result
+                )
+                self.__gross_wins_list = np.append(
+                    self.__gross_wins_list, pos.gross_result
+                )
+                self.__w_mae_list = np.append(
+                    self.__w_mae_list, float(pos.mae)
+                )
             if pos.profit_loss <= 0:
-                self.__loosing_pos_list.append(float(pos.profit_loss))
-                self.__net_losses_list.append(pos.net_result)
-                self.__gross_losses_list.append(pos.gross_result)
+                self.__loosing_pos_list = np.append(
+                    self.__loosing_pos_list, float(pos.profit_loss)
+                )
+                self.__net_losses_list = np.append(
+                    self.__net_losses_list, pos.net_result
+                )
+                self.__gross_losses_list = np.append(
+                    self.__gross_losses_list, pos.gross_result
+                )
 
-            self.__mae_list.append(float(pos.mae))
-            self.__mfe_list.append(float(pos.mfe))
+            self.__mae_list = np.append(self.__mae_list, float(pos.mae))
+            self.__mfe_list = np.append(self.__mfe_list, float(pos.mfe))
 
         self.__final_capital = int(self.__equity_list[-1])
         if len(self.__profitable_pos_list) == 0:
@@ -145,17 +173,11 @@ class Metrics:
 
     @property
     def returns_list(self):
-        if not self.__returns_list:
-            return None
-        else:
-            return self.__returns_list
+        return self.__returns_list
 
     @property
     def market_to_market_returns_list(self):
-        if not self.__market_to_market_returns_list:
-            return None
-        else:
-            return self.__market_to_market_returns_list
+        return self.__market_to_market_returns_list
 
     @property
     def equity_list(self):
@@ -225,9 +247,9 @@ class Metrics:
 
         try:
             if len(self.__mae_list) == 0:
-                self.__mae_list.append(0)
+                self.__mae_list = np.append(self.__mae_list, 0)
             if len(self.__mfe_list) == 0:
-                self.__mfe_list.append(0)
+                self.__mfe_list = np.append(self.__mfe_list, 0)
 
             self.__mae_mfe_dataframe['MAE data'] = self.__mae_list
             self.__mae_mfe_dataframe['MFE data'] = self.__mfe_list
