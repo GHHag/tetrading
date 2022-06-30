@@ -247,10 +247,10 @@ def alt_system_metrics_summary_plot(
         axs[0, 2].hist(
             pctl80_underlying_returns, orientation='vertical', color='dodgerblue',
             bins=int(np.sqrt(len(pctl80_underlying_returns)) * 2), alpha=0.5, 
-            label='Benchmark returns'
+            label='Underlying returns'
         )
         axs[0, 2].legend(loc='upper right')
-        distribution_stats_text += '\n\nBenchmark:\n' \
+        distribution_stats_text += '\n\nUnderlying:\n' \
             f'Mean: {round(np.mean(underlying_returns), 3)}\n' \
             f'Median: {round(np.median(underlying_returns), 3)}\n' \
             f'Std: {round(np.std(underlying_returns), 3)}'
