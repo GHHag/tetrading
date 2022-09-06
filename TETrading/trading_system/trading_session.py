@@ -1,9 +1,9 @@
-import datetime as dt
 from decimal import Decimal
 
 import pandas as pd
 
 from TETrading.position.position import Position
+from TETrading.signal_events.signal_handler import SignalHandler
 from TETrading.plots.candlestick_plots import candlestick_plot
 
 
@@ -31,14 +31,15 @@ class TradingSession:
     """
 
     def __init__(
-        self, entry_logic_function, exit_logic_function, dataframe,
-        signal_handler=None, symbol=''
+        self, entry_logic_function, exit_logic_function, dataframe: pd.DataFrame,
+        signal_handler: SignalHandler=None, symbol=''
     ):
         self.__entry_logic_function = entry_logic_function
         self.__exit_logic_function = exit_logic_function
         self.__dataframe = dataframe
         self.__signal_handler = signal_handler
         self.__symbol = symbol
+        self.__state_column = 'market_state'
 
     def __call__(
         self, *args, entry_args=None, exit_args=None, 
@@ -130,7 +131,7 @@ class TradingSession:
                 if exit_condition:
                     capital = position.exit_market(
                         self.__dataframe[open_price_col_name].iloc[index], 
-                        exit_signal_dt=self.__dataframe[datetime_col_name].iloc[index-1]
+                        self.__dataframe[datetime_col_name].iloc[index-1]
                     )
                     position.print_position_stats()
                     print(
@@ -168,7 +169,7 @@ class TradingSession:
                 )
                 position.enter_market(
                     self.__dataframe[open_price_col_name].iloc[index], direction, 
-                    entry_dt=self.__dataframe[datetime_col_name].iloc[index]
+                    self.__dataframe[datetime_col_name].iloc[index]
                 )
                 print(
                     f'\nEntry index {index}: '
@@ -176,7 +177,7 @@ class TradingSession:
                     f'{self.__dataframe[datetime_col_name].iloc[index]}'
                 )
 
-        # Handle the trading sessions current market events/signals.
+        # Handle the trading sessions current market state/events/signals.
         if position.active_position and generate_signals:
             position.update(Decimal(self.__dataframe[close_price_col_name].iloc[-1]))
             position.print_position_status()
@@ -187,7 +188,8 @@ class TradingSession:
                     'symbol': self.__symbol, 
                     'direction': direction,
                     'periods_in_position': len(position.returns_list), 
-                    'unrealised_return': position.unrealised_return
+                    'unrealised_return': position.unrealised_return,
+                    self.__state_column: 'active'
                 }
             )
             exit_condition, trailing_exit_price, trailing_exit = self.__exit_logic_function(
@@ -203,7 +205,8 @@ class TradingSession:
                         'symbol': self.__symbol, 
                         'direction': direction,
                         'periods_in_position': len(position.returns_list),
-                        'unrealised_return': position.unrealised_return
+                        'unrealised_return': position.unrealised_return,
+                        self.__state_column: 'exit'
                     }
                 )
                 print(f'\nExit signal, exit next open\nIndex {len(self.__dataframe)}')
@@ -217,7 +220,8 @@ class TradingSession:
                         'signal_index': len(self.__dataframe), 
                         'signal_dt': self.__dataframe[datetime_col_name].iloc[-1], 
                         'symbol': self.__symbol,
-                        'direction': direction
+                        'direction': direction,
+                        self.__state_column: 'entry'
                     }
                 )
                 print(f'\nEntry signal, buy next open\nIndex {len(self.__dataframe)}')

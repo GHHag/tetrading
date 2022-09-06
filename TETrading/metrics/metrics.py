@@ -1,9 +1,11 @@
 import math
 from decimal import Decimal, DivisionByZero, InvalidOperation
+from typing import List
 
 import numpy as np
 import pandas as pd
 
+from TETrading.position.position import Position
 from TETrading.metrics.metrics_summary_plot import system_metrics_summary_plot, \
     alt_system_metrics_summary_plot
 
@@ -28,7 +30,7 @@ class Metrics:
         was generated from.
     """
     
-    def __init__(self, symbol, positions, start_capital, num_testing_periods):
+    def __init__(self, symbol, positions: List[Position], start_capital, num_testing_periods):
         self.__symbol = symbol
         self.__start_capital = start_capital
         self.__positions = []
@@ -245,18 +247,20 @@ class Metrics:
         excursion and return data to the __mae_mfe_dataframe member.
         """
 
-        try:
-            if len(self.__mae_list) == 0:
-                self.__mae_list = np.append(self.__mae_list, 0)
-            if len(self.__mfe_list) == 0:
-                self.__mfe_list = np.append(self.__mfe_list, 0)
+        #try:
+        if len(self.__mae_list) == 0 and len(self.__mfe_list) == 0 and len(self.__returns_list) == 0:
+            self.__returns_list = np.append(self.__returns_list, 0)
+        if len(self.__mae_list) == 0:
+            self.__mae_list = np.append(self.__mae_list, 0)
+        if len(self.__mfe_list) == 0:
+            self.__mfe_list = np.append(self.__mfe_list, 0)
 
-            self.__mae_mfe_dataframe['MAE data'] = self.__mae_list
-            self.__mae_mfe_dataframe['MFE data'] = self.__mfe_list
-            self.__mae_mfe_dataframe['Return'] = self.__returns_list
+        self.__mae_mfe_dataframe['MAE data'] = self.__mae_list
+        self.__mae_mfe_dataframe['MFE data'] = self.__mfe_list
+        self.__mae_mfe_dataframe['Return'] = self.__returns_list
 
-        except ValueError:
-            print('ValueError: Length of values does not match length of index for MAE, MFE, Actual returns')
+        #except IndexError:#ValueError:
+        #    print('ValueError: Length of values does not match length of index for MAE, MFE, Actual returns')
 
     def _calculate_max_drawdown(self):
         """

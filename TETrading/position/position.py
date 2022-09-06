@@ -29,7 +29,7 @@ class Position:
         self.__uninvested_capital = 0
         self.__fixed_position_size = fixed_position_size
         self.__commission_pct_cost = Decimal(commission_pct_cost)
-        self.__commission = None
+        self.__commission = 0
         self.__active_position = False
         self.__last_price = None
         self.__unrealised_return = 0
@@ -111,11 +111,13 @@ class Position:
 
         if self.__direction == 'long':
             return Decimal(
-                (self.__position_size * self.__exit_price) - (self.__position_size * self.__entry_price)
+                (self.__position_size * self.__exit_price) - ((self.__position_size * self.__entry_price) + \
+                                                                self.__commission)
             ).quantize(Decimal('0.02'))
         elif self.__direction == 'short':
             return Decimal(
-                (self.__position_size * self.__entry_price) - (self.__position_size * self.__exit_price)
+                (self.__position_size * self.__entry_price) - ((self.__position_size * self.__exit_price) + \
+                                                                self.__commission)
             ).quantize(Decimal('0.02'))
 
     @property
@@ -129,13 +131,11 @@ class Position:
 
         if self.__direction == 'long':
             return Decimal(
-                (self.__position_size * self.__exit_price) - ((self.__position_size * self.__entry_price) *
-                                                               self.__commission_pct_cost)
+                (self.__position_size * self.__exit_price) - (self.__position_size * self.__entry_price)
             ).quantize(Decimal('0.02'))
         elif self.__direction == 'short':
             return Decimal(
-                (self.__position_size * self.__entry_price) - ((self.__position_size * self.__exit_price) *
-                                                                self.__commission_pct_cost)
+                (self.__position_size * self.__entry_price) - (self.__position_size * self.__exit_price)
             ).quantize(Decimal('0.02'))
 
     @property
@@ -185,7 +185,23 @@ class Position:
     def market_to_market_returns_list(self):
         return self.__market_to_market_returns_list
 
-    def enter_market(self, entry_price, direction, entry_dt=None):
+    @property
+    def to_dict(self): # dundermethod __dict__ om det finns?
+        # vilka medlemmar vill jag ha med? de som behövs för att rita ut backtest grafer
+        # typomvandlingar haer eller på annat staelle?
+        return {
+            'entry_dt': self.entry_dt,
+            'exit_signal_dt': self.exit_signal_dt,
+            'returns_list': [float(x) for x in self.returns_list],
+            'position_return': float(self.position_return),
+            'net_result': float(self.net_result),
+            'gross_result': float(self.gross_result),
+            'profit_loss': float(self.profit_loss),
+            'mae': float(self.mae),
+            'mfe': float(self.mfe),
+       }
+
+    def enter_market(self, entry_price, direction, entry_dt):
         """
         Enters market at the given price in the given direction.
 
@@ -219,7 +235,7 @@ class Position:
         self.__entry_dt = entry_dt
         self.__active_position = True
 
-    def exit_market(self, exit_price, exit_signal_dt=None):
+    def exit_market(self, exit_price, exit_signal_dt):
         """
         Exits the market at the given price.
 
