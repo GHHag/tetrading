@@ -1,5 +1,7 @@
 from decimal import Decimal
 
+import numpy as np
+
 
 class Position:
     """
@@ -34,9 +36,9 @@ class Position:
         self.__last_price = None
         self.__unrealised_return = 0
         self.__unrealised_profit_loss = 0
-        self.__returns_list = []
-        self.__market_to_market_returns_list = []
-        self.__position_profit_loss_list = []
+        self.__returns_list = np.array([])
+        self.__market_to_market_returns_list = np.array([])
+        self.__position_profit_loss_list = np.array([])
 
     @property
     def entry_price(self):
@@ -186,9 +188,7 @@ class Position:
         return self.__market_to_market_returns_list
 
     @property
-    def to_dict(self): # dundermethod __dict__ om det finns?
-        # vilka medlemmar vill jag ha med? de som behövs för att rita ut backtest grafer
-        # typomvandlingar haer eller på annat staelle?
+    def to_dict(self):
         return {
             'entry_dt': self.entry_dt,
             'exit_signal_dt': self.exit_signal_dt,
@@ -285,12 +285,16 @@ class Position:
             self.__unrealised_profit_loss = Decimal(
                 current_price - self.__entry_price
             ).quantize(Decimal('0.02'))
-            self.__position_profit_loss_list.append(self.__unrealised_profit_loss)
+            self.__position_profit_loss_list = np.append(
+                self.__position_profit_loss_list, self.__unrealised_profit_loss
+            )
         elif self.__direction == 'short':
             self.__unrealised_profit_loss = Decimal(
                 self.__entry_price - current_price
             ).quantize(Decimal('0.02'))
-            self.__position_profit_loss_list.append(self.__unrealised_profit_loss)
+            self.__position_profit_loss_list = np.append(
+                self.__position_profit_loss_list, self.__unrealised_profit_loss
+            )
 
     def _unrealised_return(self, current_price):
         """
@@ -311,24 +315,30 @@ class Position:
             unrealised_return = Decimal(
                 ((current_price - self.__entry_price) / self.__entry_price) * 100
             ).quantize(Decimal('0.02'))
-            self.__market_to_market_returns_list.append(
+            self.__market_to_market_returns_list = np.append(
+                self.__market_to_market_returns_list,
                 Decimal(
                     (current_price - self.__last_price) / self.__last_price * 100
                 ).quantize(Decimal('0.02'))
             )
-            self.__returns_list.append(unrealised_return)
+            self.__returns_list = np.append(
+                self.__returns_list, unrealised_return
+            )
             self.__last_price = current_price
             self.__unrealised_return = unrealised_return
         elif self.__direction == 'short':
             unrealised_return = Decimal(
                 ((self.__entry_price - current_price) / self.__entry_price) * 100
             ).quantize(Decimal('0.02'))
-            self.__market_to_market_returns_list.append(
+            self.market_to_market_returns_list = np.append(
+                self.__market_to_market_returns_list,
                 Decimal(
                     (self.__last_price - current_price) / self.__last_price * 100
                 ).quantize(Decimal('0.02'))
             )
-            self.__returns_list.append(unrealised_return)
+            self.__returns_list = np.append(
+                self.__returns_list, unrealised_return
+            )
             self.__last_price = current_price
             self.__unrealised_return = unrealised_return
 

@@ -176,12 +176,13 @@ class TradingSystem:
 
     def __call__(
         self, *args, capital=10000, capital_fraction=1.0, yearly_periods=251,
-        plot_performance_summary=False, save_summary_plot_to_path=None, system_analysis_to_csv_path=None,
-        plot_returns_distribution=False, save_returns_distribution_plot_to_path=None,
+        plot_performance_summary=False, save_summary_plot_to_path: str=None, 
+        system_analysis_to_csv_path: str=None,
+        plot_returns_distribution=False, save_returns_distribution_plot_to_path: str=None,
         run_monte_carlo_sims=False, num_of_monte_carlo_sims=2500, monte_carlo_data_amount=0.4,
-        plot_monte_carlo=False, print_monte_carlo_df=False, monte_carlo_analysis_to_csv_path=None,
-        write_signals_to_file_path=None, insert_data_to_db_bool=False, 
-        signal_handler_db_insert_funcs: Dict[str, Callable]=None,
+        plot_monte_carlo=False, print_monte_carlo_df=False, 
+        monte_carlo_analysis_to_csv_path: str=None, write_signals_to_file_path: str=None, 
+        insert_data_to_db_bool=False, signal_handler_db_insert_funcs: Dict[str, Callable]=None,
         single_symbol_pos_list_db_insert_func: Callable=None, 
         json_format_single_symbol_pos_list_db_insert_func: Callable=None,
         full_pos_list_db_insert_func: Callable=None, 
@@ -394,6 +395,7 @@ class TradingSystem:
             self.__signal_handler.write_to_csv(
                 write_signals_to_file_path, self.__system_name
             )
+
         if insert_data_to_db_bool and signal_handler_db_insert_funcs:
             self.__signal_handler.insert_into_db(
                 signal_handler_db_insert_funcs, self.__system_name

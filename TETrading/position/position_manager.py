@@ -29,7 +29,7 @@ class PositionManager:
         self.__start_capital = start_capital
         self.__capital_fraction = capital_fraction
         self.__safe_f_capital = self.__start_capital * self.__capital_fraction
-        self.__parked_capital = self.__start_capital - self.__safe_f_capital
+        self.__uninvested_capital = self.__start_capital - self.__safe_f_capital
 
         self.__generated_positions = None
         self.__metrics = None
@@ -60,15 +60,15 @@ class PositionManager:
         else:
             return None
 
-    def generate_positions(self, trade_logic, *args, **kwargs):
+    def generate_positions(self, trading_logic, *args, **kwargs):
         """
-        Calls the trade_logic function to generate positions.
+        Calls the trading_logic function to generate positions.
         Then calls _create_metrics to calculate metrics and
         statistics.
 
         Parameters
         ----------
-        :param trade_logic:
+        :param trading_logic:
             'function' : Logic to generate positions.
         :param args:
             'tuple' : A tuple with arguments to pass to the trade_logic
@@ -78,7 +78,7 @@ class PositionManager:
             trade_logic function
         """
 
-        self.__generated_positions = trade_logic(
+        self.__generated_positions = trading_logic(
             *args, capital=self.__safe_f_capital, **kwargs
         )
         self._create_metrics()

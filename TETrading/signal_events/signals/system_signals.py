@@ -1,3 +1,4 @@
+from typing import Dict, List
 import pandas as pd
 
 
@@ -7,7 +8,7 @@ class SystemSignals:
     """
 
     def __init__(self):
-        self.__data_list = []
+        self.__data_list: List[Dict] = []
 
     @property
     def dataframe(self):
@@ -45,7 +46,7 @@ class SystemSignals:
 
         self.__data_list.append({'symbol': symbol, 'data': data_dict})
 
-    def add_evaluation_data(self, evaluation_data_dict):
+    def add_evaluation_data(self, evaluation_data_dict: Dict):
         """
         Iterates over the __data_list member and if a value
         of the 'symbol' key matches a value in the given
@@ -60,4 +61,9 @@ class SystemSignals:
 
         for instrument_dict in self.__data_list:
             if instrument_dict['symbol'] in evaluation_data_dict.values():
+                assert 'data' in instrument_dict, \
+                    "'instrument_dict' is missing required 'data' key is missing."
+                assert isinstance(instrument_dict['data'], dict), \
+                    "The value mapping to the 'data' key in 'instrument_dict' " \
+                    "does not have the right format."
                 instrument_dict['data'].update(evaluation_data_dict)

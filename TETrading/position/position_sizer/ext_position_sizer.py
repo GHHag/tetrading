@@ -13,7 +13,8 @@ class ExtPositionSizer(PositionSizer):
         return self.__objective_function_str
 
     def __call__(
-        self, best_estimate_positions, period_len, symbol='', **kwargs
+        #self, best_estimate_positions, period_len, symbol='', **kwargs
+        self, *args, symbol='', **kwargs
     ):
         return {
             'symbol': symbol,
