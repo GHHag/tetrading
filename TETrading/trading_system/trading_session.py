@@ -225,3 +225,10 @@ class TradingSession:
                     }
                 )
                 print(f'\nEntry signal, buy next open\nIndex {len(self.__dataframe)}')
+            else:
+                self.__signal_handler.handle_entry_signal(
+                    self.__symbol, {
+                        'signal_dt': self.__dataframe[datetime_col_name].iloc[-1],
+                        self.__state_column: 'null'
+                    }
+                )

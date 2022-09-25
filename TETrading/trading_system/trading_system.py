@@ -338,7 +338,8 @@ class TradingSystem:
                 )
 
             # add position sizing and system health data to the SignalHandler
-            if len(pos_manager.metrics.positions) > 0 and self.__signal_handler.entry_signal_given:
+            #if len(pos_manager.metrics.positions) > 0 and self.__signal_handler.entry_signal_given:
+            if True:
                 avg_yearly_positions = len(pos_manager.metrics.positions) / (len(data) / yearly_periods)
                 self.__signal_handler.add_pos_sizing_evaluation_data(
                     self.__pos_sizer(
