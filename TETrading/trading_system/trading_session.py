@@ -39,13 +39,14 @@ class TradingSession:
         self.__dataframe = dataframe
         self.__signal_handler = signal_handler
         self.__symbol = symbol
-        self.__state_column = 'market_state'
+        self.__market_state_column = 'market_state'
 
     def __call__(
         self, *args, entry_args=None, exit_args=None, 
         max_req_periods_feature='req_period_iters', datetime_col_name='Date',
         close_price_col_name='Close', open_price_col_name='Open',
         fixed_position_size=True, capital=10000, commission_pct_cost=0.0,
+        market_state_null_default=False,
         generate_signals=False, plot_positions=False, 
         save_position_figs_path=None, **kwargs
     ):
@@ -178,6 +179,14 @@ class TradingSession:
                 )
 
         # Handle the trading sessions current market state/events/signals.
+        if market_state_null_default and generate_signals:
+            self.__signal_handler.handle_entry_signal(
+                self.__symbol, {
+                    'signal_dt': self.__dataframe[datetime_col_name].iloc[-1],
+                    self.__market_state_column: 'null'
+                }
+            )
+            return
         if position.active_position and generate_signals:
             position.update(Decimal(self.__dataframe[close_price_col_name].iloc[-1]))
             position.print_position_status()
@@ -189,7 +198,7 @@ class TradingSession:
                     'direction': direction,
                     'periods_in_position': len(position.returns_list), 
                     'unrealised_return': position.unrealised_return,
-                    self.__state_column: 'active'
+                    self.__market_state_column: 'active'
                 }
             )
             exit_condition, trailing_exit_price, trailing_exit = self.__exit_logic_function(
@@ -206,7 +215,7 @@ class TradingSession:
                         'direction': direction,
                         'periods_in_position': len(position.returns_list),
                         'unrealised_return': position.unrealised_return,
-                        self.__state_column: 'exit'
+                        self.__market_state_column: 'exit'
                     }
                 )
                 print(f'\nExit signal, exit next open\nIndex {len(self.__dataframe)}')
@@ -221,14 +230,7 @@ class TradingSession:
                         'signal_dt': self.__dataframe[datetime_col_name].iloc[-1], 
                         'symbol': self.__symbol,
                         'direction': direction,
-                        self.__state_column: 'entry'
+                        self.__market_state_column: 'entry'
                     }
                 )
                 print(f'\nEntry signal, buy next open\nIndex {len(self.__dataframe)}')
-            else:
-                self.__signal_handler.handle_entry_signal(
-                    self.__symbol, {
-                        'signal_dt': self.__dataframe[datetime_col_name].iloc[-1],
-                        self.__state_column: 'null'
-                    }
-                )

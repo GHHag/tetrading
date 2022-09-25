@@ -68,8 +68,8 @@ class TradingSystem:
         # Instantiate SignalHandler object
         self.__signal_handler = SignalHandler()
 
-        self.__metrics_df = self._create_metrics_df()
-        self.__monte_carlo_simulations_df = self._create_monte_carlo_sims_df()
+        self.__metrics_df: pd.DataFrame = self._create_metrics_df()
+        self.__monte_carlo_simulations_df: pd.DataFrame = self._create_monte_carlo_sims_df()
 
     @property
     def total_period_len(self):
@@ -176,6 +176,7 @@ class TradingSystem:
 
     def __call__(
         self, *args, capital=10000, capital_fraction=1.0, yearly_periods=251,
+        market_state_null_default=False,
         plot_performance_summary=False, save_summary_plot_to_path: str=None, 
         system_analysis_to_csv_path: str=None,
         plot_returns_distribution=False, save_returns_distribution_plot_to_path: str=None,
@@ -296,7 +297,10 @@ class TradingSystem:
                 self.__entry_logic_function, self.__exit_logic_function, data,
                 signal_handler=self.__signal_handler, symbol=instrument
             )
-            pos_manager.generate_positions(trading_session, *args, **kwargs)
+            pos_manager.generate_positions(
+                trading_session, *args,
+                market_state_null_default=market_state_null_default, **kwargs
+            )
 
             # summary output of the trading system
             if not pos_manager.metrics:
@@ -338,8 +342,8 @@ class TradingSystem:
                 )
 
             # add position sizing and system health data to the SignalHandler
-            #if len(pos_manager.metrics.positions) > 0 and self.__signal_handler.entry_signal_given:
-            if True:
+            if len(pos_manager.metrics.positions) > 0 and self.__signal_handler.entry_signal_given or \
+                market_state_null_default:
                 avg_yearly_positions = len(pos_manager.metrics.positions) / (len(data) / yearly_periods)
                 self.__signal_handler.add_pos_sizing_evaluation_data(
                     self.__pos_sizer(

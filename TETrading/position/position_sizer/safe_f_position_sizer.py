@@ -195,7 +195,8 @@ class SafeFPositionSizer(PositionSizer):
         :return:
             'dict'
         """
-        self.__forecast_positions = int(len(best_estimate_positions) * 0.75) 
+        
+        self.__forecast_positions = int(len(best_estimate_positions) * 0.75) #
 
         split_data_fraction = 1.0
         if len(best_estimate_positions) >= self.__forecast_positions:
@@ -222,17 +223,6 @@ class SafeFPositionSizer(PositionSizer):
         # calculate the safe fraction of capital to be used to purchase assets with
         safe_f = self.__tol_pct_max_dd / dd_at_tolerated_threshold
 
-        import pprint
-        pprint.pprint({
-            'symbol': symbol,
-            'sharpe_ratio': kwargs['metrics_dict']['Sharpe ratio'],
-            'profit_factor': kwargs['metrics_dict']['Profit factor'],
-            'expectancy': kwargs['metrics_dict']['Expectancy'],
-            'CAR25': round(monte_carlo_sims_df.iloc[-1]['CAR25'], 3),
-            'CAR75': round(monte_carlo_sims_df.iloc[-1]['CAR75'], 3),
-            'safe-f': round(safe_f, 3),
-        })
-        input('xxxxxxxxxxx')
         return {
             'symbol': symbol,
             'sharpe_ratio': kwargs['metrics_dict']['Sharpe ratio'],
