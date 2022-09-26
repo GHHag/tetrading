@@ -35,12 +35,12 @@ class SafeFPositionSizer(PositionSizer):
 
     def __init__(
         self, objective_function_str, tolerated_pct_max_drawdown, 
-        max_drawdown_percentile_threshold, forecast_positions=150
+        max_drawdown_percentile_threshold#, forecast_positions=150
     ):
         self.__objective_function_str = objective_function_str
         self.__tol_pct_max_dd = tolerated_pct_max_drawdown
         self.__max_dd_pctl_threshold = max_drawdown_percentile_threshold
-        self.__forecast_positions = forecast_positions
+        #self.__forecast_positions = forecast_positions
 
     @property
     def objective_function_str(self):
@@ -89,7 +89,7 @@ class SafeFPositionSizer(PositionSizer):
             'Pandas DataFrame'
         """
 
-        monte_carlo_sims_df = pd.DataFrame()
+        monte_carlo_sims_df: pd.DataFrame = pd.DataFrame()
 
         equity_curves_list = []
         final_equity_list = []
@@ -115,7 +115,7 @@ class SafeFPositionSizer(PositionSizer):
             for pos in position_list[:int(len(position_list) * data_amount_used)]:
                 yield pos
 
-        for i in range(num_of_sims):
+        for _ in range(num_of_sims):
             sim_positions = PositionManager(
                 symbol, (num_testing_periods * data_amount_used), start_capital,
                 capital_fraction
@@ -161,7 +161,8 @@ class SafeFPositionSizer(PositionSizer):
         return monte_carlo_sims_df
 
     def __call__(
-        self, best_estimate_positions, period_len, forecast_data_fraction=0.5, 
+        self, best_estimate_positions, period_len, 
+        forecast_data_fraction=0.5,
         capital=10000, num_of_sims=1000, symbol='', **kwargs
     ):
         """
@@ -195,14 +196,14 @@ class SafeFPositionSizer(PositionSizer):
         :return:
             'dict'
         """
-        
-        self.__forecast_positions = int(len(best_estimate_positions) * 0.75) #
 
-        split_data_fraction = 1.0
-        if len(best_estimate_positions) >= self.__forecast_positions:
-            split_data_fraction = self.__forecast_positions / len(best_estimate_positions)
+        #self.__forecast_positions = int(len(best_estimate_positions) * 0.75) ##
 
-        period_len = int(period_len * split_data_fraction)
+        #split_data_fraction = 1.0
+        #if len(best_estimate_positions) >= self.__forecast_positions:
+        #    split_data_fraction = self.__forecast_positions / len(best_estimate_positions)
+
+        #period_len = int(period_len * split_data_fraction)
         # sort positions on date
         best_estimate_positions.sort(key=lambda tr: tr.entry_dt)
         # simulate sequences of given Position objects
@@ -225,9 +226,9 @@ class SafeFPositionSizer(PositionSizer):
 
         return {
             'symbol': symbol,
-            'sharpe_ratio': kwargs['metrics_dict']['Sharpe ratio'],
-            'profit_factor': kwargs['metrics_dict']['Profit factor'],
-            'expectancy': kwargs['metrics_dict']['Expectancy'],
+            #'sharpe_ratio': kwargs['metrics_dict']['Sharpe ratio'],
+            #'profit_factor': kwargs['metrics_dict']['Profit factor'],
+            #'expectancy': kwargs['metrics_dict']['Expectancy'],
             'CAR25': round(monte_carlo_sims_df.iloc[-1]['CAR25'], 3),
             'CAR75': round(monte_carlo_sims_df.iloc[-1]['CAR75'], 3),
             'safe-f': round(safe_f, 3),

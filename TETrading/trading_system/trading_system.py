@@ -60,7 +60,7 @@ class TradingSystem:
 
         self.__total_period_len = 0
         self.__full_pos_list: list[Position] = []
-        self.__pos_lists = []
+        self.__pos_lists: list[Position] = []
         self.__full_market_to_market_returns_list = np.array([])
         self.__full_mae_list = np.array([])
         self.__full_mfe_list = np.array([])
