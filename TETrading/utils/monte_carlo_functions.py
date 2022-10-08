@@ -79,7 +79,7 @@ def monte_carlo_simulate_returns(
         for pos in position_list[:int(len(position_list) * data_amount_used)]:
             yield pos
 
-    for i in range(num_of_sims):
+    for _ in range(num_of_sims):
         sim_positions = PositionManager(
             symbol, (num_testing_periods * data_amount_used), start_capital,
             capital_fraction

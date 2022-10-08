@@ -18,6 +18,10 @@ class SignalHandler:
     def entry_signal_given(self):
         return self.__entry_signal_given
 
+    @property
+    def entry_signals_data(self):
+        return self.__entry_signals.dataframe
+
     def handle_entry_signal(self, symbol, data_dict):
         """
         Calls the __entry_signals members add_signal_data method,
