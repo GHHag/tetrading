@@ -18,10 +18,6 @@ class SignalHandler:
     def entry_signal_given(self):
         return self.__entry_signal_given
 
-    @property
-    def entry_signals_data(self):
-        return self.__entry_signals.dataframe
-
     def handle_entry_signal(self, symbol, data_dict):
         """
         Calls the __entry_signals members add_signal_data method,
@@ -152,6 +148,9 @@ class SignalHandler:
 
             if not insert_successful:
                 raise Exception('DatabaseInsertException, failed to insert to database.')
+
+    def get_position_sizing_dict(self, position_sizing_metric_str):
+        return self.__entry_signals.get_pos_sizer_dict(position_sizing_metric_str)
 
     def __str__(self):
         return f'\n\

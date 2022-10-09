@@ -32,6 +32,9 @@ class SystemSignals:
         else:
             return f'{self.__data_list}'
 
+    def get_pos_sizer_dict(self, position_sizing_metric_str):
+        return {x['symbol']: x['data'][position_sizing_metric_str] for x in self.__data_list}
+
     def add_data(self, symbol, data_dict):
         """
         Appends a dict with a symbol/ticker and given data to the

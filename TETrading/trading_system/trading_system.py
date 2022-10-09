@@ -84,8 +84,10 @@ class TradingSystem:
         return self.__pos_lists
 
     @property
-    def signal_handler_data(self):
-        return self.__signal_handler.entry_signals_data
+    def position_sizer_dict(self):
+        return self.__signal_handler.get_position_sizing_dict(
+            self.__pos_sizer.position_size_metric_str
+        )
 
     def _create_metrics_df(self):
         return pd.DataFrame(
@@ -294,16 +296,15 @@ class TradingSystem:
                 continue
 
             persistant_capital_f = None
-            # if capital_fraction is not a float then it should be contained in dataframe
+            # if capital_fraction is not a float it should be a dict containing a key 
+            # with the current value of 'instrument' that corresponds to a float value
             if not isinstance(capital_fraction, float):
-                capital_f = capital_fraction[capital_fraction['symbol'] == instrument] \
-                    ['safe-f'].values[0]
+                capital_f = capital_fraction[instrument]
                 persistant_capital_f = capital_f
             else:
                 capital_f = capital_fraction
 
             pos_manager = PositionManager(
-                #instrument, len(data), capital, capital_fraction, 
                 instrument, len(data), capital, capital_f, 
                 asset_price_series=asset_price_series
             )
@@ -333,7 +334,7 @@ class TradingSystem:
                     print('ValueError')
 
             # write trading system data and stats to DataFrame
-            self.__metrics_df = self.__metrics_df.append(
+            self.__metrics_df: pd.DataFrame = self.__metrics_df.append(
                 pos_manager.metrics.summary_data_dict, ignore_index=True
             )
 
@@ -343,7 +344,6 @@ class TradingSystem:
                 monte_carlo_sims_data_dicts_list = monte_carlo_simulate_returns(
                     pos_manager.metrics.positions, pos_manager.symbol, 
                     pos_manager.metrics.num_testing_periods,
-                    #start_capital=capital, capital_fraction=capital_fraction,
                     start_capital=capital, capital_fraction=capital_f,
                     num_of_sims=num_of_monte_carlo_sims, data_amount_used=monte_carlo_data_amount,
                     print_dataframe=print_monte_carlo_df,
