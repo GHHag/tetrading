@@ -1,7 +1,9 @@
 import random
+from typing import List
 
 import pandas as pd
 
+from TETrading.position.position import Position
 from TETrading.position.position_sizer.position_sizer import PositionSizer
 from TETrading.position.position_manager import PositionManager
 from TETrading.utils.metric_functions import calculate_cagr
@@ -37,9 +39,14 @@ class SafeFPositionSizer(PositionSizer):
         self, objective_function_str, tolerated_pct_max_drawdown, 
         max_drawdown_percentile_threshold
     ):
+        self.__position_size_metric_str = 'safe-f'
         self.__objective_function_str = objective_function_str
         self.__tol_pct_max_dd = tolerated_pct_max_drawdown
         self.__max_dd_pctl_threshold = max_drawdown_percentile_threshold
+
+    @property
+    def position_size_metric_str(self):
+        return self.__position_size_metric_str
 
     @property
     def objective_function_str(self):
@@ -122,7 +129,7 @@ class SafeFPositionSizer(PositionSizer):
 
             pos_list = random.sample(positions, len(positions))
             sim_positions.generate_positions(generate_position_sequence, pos_list)
-            monte_carlo_sims_df = monte_carlo_sims_df.append(
+            monte_carlo_sims_df: pd.DataFrame = monte_carlo_sims_df.append(
                 sim_positions.metrics.summary_data_dict, ignore_index=True
             )
             final_equity_list.append(float(sim_positions.metrics.equity_list[-1]))
@@ -160,7 +167,7 @@ class SafeFPositionSizer(PositionSizer):
         return monte_carlo_sims_df
 
     def __call__(
-        self, positions, period_len, 
+        self, positions: List[Position], period_len, 
         forecast_positions=100, forecast_data_fraction=0.5, persistant_safe_f=None,
         capital=10000, num_of_sims=2500, symbol='', **kwargs
     ):
@@ -207,7 +214,9 @@ class SafeFPositionSizer(PositionSizer):
         # simulate sequences of given Position objects
         monte_carlo_sims_df = self._monte_carlo_simulate_pos_sequence(
             positions[-(int(len(positions) * split_data_fraction)):], 
-            period_len, capital, num_of_sims=num_of_sims, data_amount_used=forecast_data_fraction, 
+            period_len, capital, 
+            capital_fraction=persistant_safe_f if persistant_safe_f else 1.0, 
+            num_of_sims=num_of_sims, data_amount_used=forecast_data_fraction, 
             symbol=symbol, **kwargs
         )
 
@@ -232,5 +241,5 @@ class SafeFPositionSizer(PositionSizer):
             'expectancy': kwargs['metrics_dict']['Expectancy'],
             'CAR25': round(monte_carlo_sims_df.iloc[-1]['CAR25'], 3),
             'CAR75': round(monte_carlo_sims_df.iloc[-1]['CAR75'], 3),
-            'safe-f': round(safe_f, 3),
+            self.__position_size_metric_str: round(safe_f, 3),
         }

@@ -1,4 +1,5 @@
 from abc import ABCMeta, abstractmethod
+from typing import Dict
 
 
 class PositionSizer:
@@ -9,6 +10,11 @@ class PositionSizer:
 
     __metaclass__ = ABCMeta
 
+    @property
     @abstractmethod
-    def __call__(self, dt, weights):
+    def position_size_metric_str(self):
+        ...
+    
+    @abstractmethod
+    def __call__(self, dt, weights) -> Dict:
         raise NotImplementedError('Should implement call()')

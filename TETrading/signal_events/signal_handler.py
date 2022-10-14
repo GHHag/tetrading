@@ -1,3 +1,4 @@
+from TETrading.utils.metadata.market_state_enum import MarketState
 from TETrading.signal_events.signals.system_signals import SystemSignals
 
 
@@ -126,7 +127,7 @@ class SignalHandler:
         """
 
         if self.__entry_signals.dataframe is not None:
-            insert_successful = db_insert_funcs['entry'](
+            insert_successful = db_insert_funcs[MarketState.ENTRY.value](
                 system_name, self.__entry_signals.dataframe.to_json(orient='table')
             )
 
@@ -134,7 +135,7 @@ class SignalHandler:
                 raise Exception('DatabaseInsertException, failed to insert to database.')
 
         if self.__active_positions.dataframe is not None:
-            insert_successful = db_insert_funcs['active'](
+            insert_successful = db_insert_funcs[MarketState.ACTIVE.value](
                 system_name, self.__active_positions.dataframe.to_json(orient='table')
             )
 
@@ -142,7 +143,7 @@ class SignalHandler:
                 raise Exception('DatabaseInsertException, failed to insert to database.')
 
         if self.__exit_signals.dataframe is not None:
-            insert_successful = db_insert_funcs['exit'](
+            insert_successful = db_insert_funcs[MarketState.EXIT.value](
                 system_name, self.__exit_signals.dataframe.to_json(orient='table')
             )
 

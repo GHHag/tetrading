@@ -41,7 +41,7 @@ class TradingSystem:
 
     def __init__(
         self, system_name, data_dict, entry_logic_function, exit_logic_function, 
-        pos_sizer, db_client=None
+        pos_sizer: PositionSizer, db_client=None
     ):
         self.__system_name = system_name
         assert isinstance(data_dict, dict), \
@@ -356,7 +356,7 @@ class TradingSystem:
                     monte_carlo_summary_data_dict, ignore_index=True
                 )
 
-            # add position sizing and system health data to the SignalHandler
+            # add position sizing data to the SignalHandler
             if len(pos_manager.metrics.positions) > 0 and self.__signal_handler.entry_signal_given or \
                 market_state_null_default:
                 avg_yearly_positions = len(pos_manager.metrics.positions) / (len(data) / yearly_periods)
