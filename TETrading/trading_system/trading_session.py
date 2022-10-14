@@ -2,6 +2,8 @@ from decimal import Decimal
 
 import pandas as pd
 
+from TETrading.utils.metadata.market_state_enum import MarketState
+from TETrading.utils.metadata.trading_system_attributes import TradingSystemAttributes
 from TETrading.position.position import Position
 from TETrading.signal_events.signal_handler import SignalHandler
 from TETrading.plots.candlestick_plots import candlestick_plot
@@ -39,7 +41,7 @@ class TradingSession:
         self.__dataframe = dataframe
         self.__signal_handler = signal_handler
         self.__symbol = symbol
-        self.__market_state_column = 'market_state'
+        self.__market_state_column = TradingSystemAttributes.MARKET_STATE
 
     def __call__(
         self, *args, entry_args=None, exit_args=None, 
@@ -113,7 +115,7 @@ class TradingSession:
         if isinstance(self.__dataframe.index, pd.DatetimeIndex):
             self.__dataframe.reset_index(level=0, inplace=True)
 
-        for index, row in enumerate(self.__dataframe.itertuples()):
+        for index, _ in enumerate(self.__dataframe.itertuples()):
             # entry_args[max_req_periods_feature] is the parameter used 
             # with the longest period lookback required to calculate.
             if index <= entry_args[max_req_periods_feature]:
@@ -182,7 +184,7 @@ class TradingSession:
         if market_state_null_default and generate_signals:
             self.__signal_handler.handle_entry_signal(
                 self.__symbol, {
-                    'signal_dt': self.__dataframe[datetime_col_name].iloc[-1],
+                    TradingSystemAttributes.SIGNAL_DT: self.__dataframe[datetime_col_name].iloc[-1],
                     self.__market_state_column: 'null'
                 }
             )
@@ -192,13 +194,15 @@ class TradingSession:
             position.print_position_status()
             self.__signal_handler.handle_active_position(
                 self.__symbol, {
-                    'signal_index': len(self.__dataframe), 
-                    'signal_dt': self.__dataframe[datetime_col_name].iloc[-1], 
-                    'symbol': self.__symbol, 
-                    'direction': direction,
-                    'periods_in_position': len(position.returns_list), 
-                    'unrealised_return': position.unrealised_return,
-                    self.__market_state_column: 'active'
+                    TradingSystemAttributes.SIGNAL_INDEX: len(self.__dataframe), 
+                    TradingSystemAttributes.SIGNAL_DT: 
+                        self.__dataframe[datetime_col_name].iloc[-1], 
+                    TradingSystemAttributes.SYMBOL: self.__symbol, 
+                    TradingSystemAttributes.DIRECTION: direction,
+                    TradingSystemAttributes.PERIODS_IN_POSITION: 
+                        len(position.returns_list), 
+                    TradingSystemAttributes.UNREALISED_RETURN: position.unrealised_return,
+                    self.__market_state_column: MarketState.ACTIVE.value
                 }
             )
             exit_condition, trailing_exit_price, trailing_exit = self.__exit_logic_function(
@@ -209,13 +213,16 @@ class TradingSession:
             if exit_condition:
                 self.__signal_handler.handle_exit_signal(
                     self.__symbol, {
-                        'signal_index': len(self.__dataframe), 
-                        'signal_dt': self.__dataframe[datetime_col_name].iloc[-1], 
-                        'symbol': self.__symbol, 
-                        'direction': direction,
-                        'periods_in_position': len(position.returns_list),
-                        'unrealised_return': position.unrealised_return,
-                        self.__market_state_column: 'exit'
+                        TradingSystemAttributes.SIGNAL_INDEX: len(self.__dataframe), 
+                        TradingSystemAttributes.SIGNAL_DT: 
+                            self.__dataframe[datetime_col_name].iloc[-1], 
+                        TradingSystemAttributes.SYMBOL: self.__symbol, 
+                        TradingSystemAttributes.DIRECTION: direction,
+                        TradingSystemAttributes.PERIODS_IN_POSITION: 
+                            len(position.returns_list),
+                        TradingSystemAttributes.UNREALISED_RETURN: 
+                            position.unrealised_return,
+                        self.__market_state_column: MarketState.EXIT.value
                     }
                 )
                 print(f'\nExit signal, exit next open\nIndex {len(self.__dataframe)}')
@@ -226,11 +233,12 @@ class TradingSession:
             if entry_signal:
                 self.__signal_handler.handle_entry_signal(
                     self.__symbol, {
-                        'signal_index': len(self.__dataframe), 
-                        'signal_dt': self.__dataframe[datetime_col_name].iloc[-1], 
-                        'symbol': self.__symbol,
-                        'direction': direction,
-                        self.__market_state_column: 'entry'
+                        TradingSystemAttributes.SIGNAL_INDEX: len(self.__dataframe), 
+                        TradingSystemAttributes.SIGNAL_DT: 
+                            self.__dataframe[datetime_col_name].iloc[-1], 
+                        TradingSystemAttributes.SYMBOL: self.__symbol,
+                        TradingSystemAttributes.DIRECTION: direction,
+                        self.__market_state_column: MarketState.ENTRY.value
                     }
                 )
                 print(f'\nEntry signal, buy next open\nIndex {len(self.__dataframe)}')
