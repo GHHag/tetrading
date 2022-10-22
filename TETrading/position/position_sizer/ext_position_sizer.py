@@ -1,7 +1,7 @@
-from TETrading.position.position_sizer.position_sizer import PositionSizer
+from TETrading.position.position_sizer.position_sizer import IPositionSizer
 
 
-class ExtPositionSizer(PositionSizer):
+class ExtPositionSizer(IPositionSizer):
 
     def __init__(self, objective_function_str, *args, **kwargs):
         self.__objective_function_str = objective_function_str
@@ -12,9 +12,7 @@ class ExtPositionSizer(PositionSizer):
     def objective_function_str(self):
         return self.__objective_function_str
 
-    def __call__(
-        self, *args, symbol='', **kwargs
-    ):
+    def __call__(self, *args, symbol='', **kwargs):
         return {
             'symbol': symbol,
             'sharpe_ratio': kwargs['metrics_dict']['Sharpe ratio'],

@@ -4,13 +4,13 @@ from typing import List
 import pandas as pd
 
 from TETrading.position.position import Position
-from TETrading.position.position_sizer.position_sizer import PositionSizer
+from TETrading.position.position_sizer.position_sizer import IPositionSizer
 from TETrading.position.position_manager import PositionManager
 from TETrading.utils.metric_functions import calculate_cagr
 from TETrading.utils.monte_carlo_functions import monte_carlo_simulations_plot
 
 
-class SafeFPositionSizer(PositionSizer):
+class SafeFPositionSizer(IPositionSizer):
     """
     Based on Monte Carlo simulations of a distribution of recent
     returns, risk and profit potential, levels are calculated and

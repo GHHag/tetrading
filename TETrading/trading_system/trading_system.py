@@ -8,7 +8,6 @@ import numpy as np
 from TETrading.position.position import Position
 from TETrading.position.position_manager import PositionManager
 from TETrading.trading_system.trading_session import TradingSession
-from TETrading.position.position_sizer.position_sizer import PositionSizer
 from TETrading.signal_events.signal_handler import SignalHandler
 from TETrading.utils.monte_carlo_functions import monte_carlo_simulate_returns, \
     monte_carlo_simulation_summary_data
