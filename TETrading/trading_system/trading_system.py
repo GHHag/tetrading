@@ -31,17 +31,6 @@ class TradingSystem:
         The logic used for entering a position.
     exit_logic_function : 'function'
         The logic used to exit a position.
-
-
-
-    pos_sizer : Subclass object of 'PositionSizer'
-        An object of a class with functionality for sizing positions.
-
-
-
-    db_client : Keyword arg 'None/function'
-        A db client used to insert system data to a database.
-        Default value=None
     """
 
     def __init__(self, system_name, data_dict, entry_logic_function, exit_logic_function):
@@ -173,7 +162,8 @@ class TradingSystem:
         return monte_carlo_sims_dicts_list, period_len
 
     def __call__(
-        self, *args, capital=10000, capital_fraction=1.0,
+        #self, *args, capital=10000, capital_fraction=1.0,
+        self, *args, capital=10000, capital_fractions_dict=None,#1.0,
         market_state_null_default=False,
         plot_performance_summary=False, save_summary_plot_to_path: str=None, 
         system_analysis_to_csv_path: str=None,
@@ -308,18 +298,21 @@ class TradingSystem:
                 input('Enter to proceed')
                 continue
 
-            """ persistant_capital_f = None
-            # if capital_fraction is not a float it should be a dict containing a key 
-            # with the current value of 'instrument' that corresponds to a float value
-            if not isinstance(capital_fraction, float):
-                capital_f = capital_fraction[instrument]
-                persistant_capital_f = capital_f
+            # if capital_fraction is a dict containing a key with the current value of 
+            # 'instrument', its value will be assigned to 'capital_f'
+            #if isinstance(capital_fraction, dict) and instrument in capital_fraction:
+            if isinstance(capital_fractions_dict, dict) and instrument in capital_fractions_dict:
+                #capital_f = capital_fraction[instrument]
+                capital_f = capital_fractions_dict[instrument]
+                # om inte capital_fraction ska hanteras som en dict daer varden för alla instrument skickas
+                # med behöver den vara en instans av ett objekt, text PositionSizer med en get-funktion
+                # som anropas och passas vardet av instrument för att haemta capital_f vaedet för just
+                # det instrumentet
             else:
-                capital_f = capital_fraction """
+                capital_f = 1.0#capital_fraction 
 
             pos_manager = PositionManager(
-                #instrument, len(data), capital, capital_f, 
-                instrument, len(data), capital, capital_fraction, 
+                instrument, len(data), capital, capital_f, 
                 asset_price_series=asset_price_series
             )
             trading_session = TradingSession(
@@ -358,8 +351,7 @@ class TradingSystem:
                 monte_carlo_sims_data_dicts_list = monte_carlo_simulate_returns(
                     pos_manager.metrics.positions, pos_manager.symbol, 
                     pos_manager.metrics.num_testing_periods,
-                    #start_capital=capital, capital_fraction=capital_f,
-                    start_capital=capital, capital_fraction=capital_fraction,
+                    start_capital=capital, capital_fraction=capital_f,
                     num_of_sims=num_of_monte_carlo_sims, data_amount_used=monte_carlo_data_amount,
                     print_dataframe=print_monte_carlo_df,
                     plot_fig=plot_monte_carlo, save_fig_to_path=save_summary_plot_to_path
@@ -388,6 +380,11 @@ class TradingSystem:
                         metrics_dict=pos_manager.metrics.summary_data_dict
                     )
                 ) """
+            if len(pos_manager.metrics.positions) > 0 and self.__signal_handler.entry_signal_given or \
+                market_state_null_default:
+                self.__signal_handler.add_pos_sizing_evaluation_data(
+                    pos_manager.metrics.summary_data_dict
+                )
 
             if insert_data_to_db_bool and single_symbol_pos_list_db_insert_func:
                 single_symbol_pos_list_db_insert_func(
