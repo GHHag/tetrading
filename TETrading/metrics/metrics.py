@@ -30,6 +30,7 @@ class Metrics:
         was generated from.
     """
     
+    # refaktorera -- flytta funktionalitet som nu ligger i __init__ till __call__()
     def __init__(self, symbol, positions: List[Position], start_capital, num_testing_periods):
         self.__symbol = symbol
         self.__start_capital = start_capital
@@ -215,31 +216,56 @@ class Metrics:
         """
 
         return {
-            'Symbol': self.__symbol,
-            'Number of positions': len(self.__returns_list),
-            'Start capital': self.__start_capital,
-            'Final capital': self.__final_capital,
-            'Total gross profit': self.__total_gross_profit,
-            'Avg pos net profit': round(self.__avg_pos_net_result, 3),
-            '% wins': self.__pct_wins,
-            'Profit factor': round(self.__profit_factor, 3),
-            'Sharpe ratio': round(float(self.__sharpe_ratio), 3),
-            'Rate of return': self.__rate_of_return,
-            'Mean P/L': round(self.__mean_profit_loss, 3),
-            'Median P/L': round(self.__median_profit_loss, 3),
-            'Std of P/L': round(self.__std_profit_loss, 3),
-            'Mean return': round(self.__mean_return, 3),
-            'Median return': round(self.__median_return, 3),
-            'Std of returns': round(self.__std_return, 3),
-            'Expectancy': round(self.__expectancy, 3),
-            'Max drawdown (%)': float(self.__max_drawdown),
-            'Avg MAE': round(np.mean(self.__mae_list), 3),
-            'Min MAE': round(min(self.__mae_list), 3),
-            'Avg MFE': round(np.mean(self.__mfe_list), 3),
-            'Max MFE': round(max(self.__mfe_list), 3),
-            'RoMad': round(self.__return_to_max_drawdown, 3),
-            'CAGR (%)': round(self.__cagr, 3),
+            'symbol': self.__symbol,
+            'number_of_positions': len(self.__returns_list),
+            'Start_capital': self.__start_capital,
+            'final_capital': self.__final_capital,
+            'total_gross_profit': self.__total_gross_profit,
+            'avg_pos_net_profit': round(self.__avg_pos_net_result, 3),
+            '%_wins': self.__pct_wins,
+            'profit_factor': round(self.__profit_factor, 3),
+            'sharpe_ratio': round(float(self.__sharpe_ratio), 3),
+            'rate_of_return': self.__rate_of_return,
+            'mean_p/l': round(self.__mean_profit_loss, 3),
+            'median_p/l': round(self.__median_profit_loss, 3),
+            'std_of_p/l': round(self.__std_profit_loss, 3),
+            'mean_return': round(self.__mean_return, 3),
+            'median_return': round(self.__median_return, 3),
+            'std_of_returns': round(self.__std_return, 3),
+            'expectancy': round(self.__expectancy, 3),
+            'max_drawdown_(%)': float(self.__max_drawdown),
+            'avg_mae': round(np.mean(self.__mae_list), 3),
+            'min_mae': round(min(self.__mae_list), 3),
+            'avg_mfe': round(np.mean(self.__mfe_list), 3),
+            'max_mfe': round(max(self.__mfe_list), 3),
+            'romad': round(self.__return_to_max_drawdown, 3),
+            'cagr_(%)': round(self.__cagr, 3)
         }
+        """ 'Symbol': self.__symbol,
+        'Number of positions': len(self.__returns_list),
+        'Start capital': self.__start_capital,
+        'Final capital': self.__final_capital,
+        'Total gross profit': self.__total_gross_profit,
+        'Avg pos net profit': round(self.__avg_pos_net_result, 3),
+        '% wins': self.__pct_wins,
+        'Profit factor': round(self.__profit_factor, 3),
+        'Sharpe ratio': round(float(self.__sharpe_ratio), 3),
+        'Rate of return': self.__rate_of_return,
+        'Mean P/L': round(self.__mean_profit_loss, 3),
+        'Median P/L': round(self.__median_profit_loss, 3),
+        'Std of P/L': round(self.__std_profit_loss, 3),
+        'Mean return': round(self.__mean_return, 3),
+        'Median return': round(self.__median_return, 3),
+        'Std of returns': round(self.__std_return, 3),
+        'Expectancy': round(self.__expectancy, 3),
+        'Max drawdown (%)': float(self.__max_drawdown),
+        'Avg MAE': round(np.mean(self.__mae_list), 3),
+        'Min MAE': round(min(self.__mae_list), 3),
+        'Avg MFE': round(np.mean(self.__mfe_list), 3),
+        'Max MFE': round(max(self.__mfe_list), 3),
+        'RoMad': round(self.__return_to_max_drawdown, 3),
+        'CAGR (%)': round(self.__cagr, 3), """
+        #}
 
     def _mae_mfe_dataframe_apply(self):
         """
@@ -255,9 +281,12 @@ class Metrics:
         if len(self.__mfe_list) == 0:
             self.__mfe_list = np.append(self.__mfe_list, 0)
 
-        self.__mae_mfe_dataframe['MAE data'] = self.__mae_list
-        self.__mae_mfe_dataframe['MFE data'] = self.__mfe_list
-        self.__mae_mfe_dataframe['Return'] = self.__returns_list
+        #self.__mae_mfe_dataframe['MAE data'] = self.__mae_list
+        #self.__mae_mfe_dataframe['MFE data'] = self.__mfe_list
+        #self.__mae_mfe_dataframe['Return'] = self.__returns_list
+        self.__mae_mfe_dataframe['mae_data'] = self.__mae_list
+        self.__mae_mfe_dataframe['mfe_data'] = self.__mfe_list
+        self.__mae_mfe_dataframe['return'] = self.__returns_list
 
         #except IndexError:#ValueError:
         #    print('ValueError: Length of values does not match length of index for MAE, MFE, Actual returns')

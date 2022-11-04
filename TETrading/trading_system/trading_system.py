@@ -71,14 +71,23 @@ class TradingSystem:
         return self.__pos_lists
 
     def _create_metrics_df(self):
+        #return pd.DataFrame(
+        """ columns=[
+            'Symbol', 'Number of positions', 'Start capital', 'Final capital',
+            'Total gross profit', 'Avg pos net profit', '% wins', 'Profit factor',
+            'Sharpe ratio', 'Rate of return', 'Mean P/L', 'Median P/L', 'Std of P/L',
+            'Mean return', 'Median return', 'Std of returns', 'Expectancy',
+            'Avg MAE', 'Min MAE', 'Avg MFE', 'Max MFE', 'Max drawdown (%)', 
+            'RoMad', 'CAGR (%)'
+        ] """
         return pd.DataFrame(
             columns=[
-                'Symbol', 'Number of positions', 'Start capital', 'Final capital',
-                'Total gross profit', 'Avg pos net profit', '% wins', 'Profit factor',
-                'Sharpe ratio', 'Rate of return', 'Mean P/L', 'Median P/L', 'Std of P/L',
-                'Mean return', 'Median return', 'Std of returns', 'Expectancy',
-                'Avg MAE', 'Min MAE', 'Avg MFE', 'Max MFE', 'Max drawdown (%)', 
-                'RoMad', 'CAGR (%)'
+                'symbol', 'number_of_positions', 'start_capital', 'final_capital',
+                'total_gross_profit', 'avg_pos_net_profit', '%_wins', 'profit_factor',
+                'sharpe_ratio', 'rate_of_return', 'mean_p/l', 'median_p/l', 'std_of_p/l',
+                'mean_return', 'median_return', 'std_of_returns', 'expectancy',
+                'avg_mae', 'min_mae', 'avg_mfe', 'max_mfe', 'max_drawdown_(%)', 
+                'romad', 'cagr_(%)'
             ]
         )
 
@@ -164,6 +173,10 @@ class TradingSystem:
     def __call__(
         #self, *args, capital=10000, capital_fraction=1.0,
         self, *args, capital=10000, capital_fractions_dict=None,#1.0,
+        system_evaluation_fields=(
+            'symbol', 'sharpe_ratio', 'expectancy', 'profit_factor', 
+            'cagr_(%)', '%_wins', 'mean_return', 'max_drawdown_(%)', 'romad'
+        ),
         market_state_null_default=False,
         plot_performance_summary=False, save_summary_plot_to_path: str=None, 
         system_analysis_to_csv_path: str=None,
@@ -195,12 +208,13 @@ class TradingSystem:
         
 
 
-        :param yearly_periods:
+        --- :param yearly_periods:
             Keyword arg 'int' : The number of periods in a year for the time frame
             of the given datasets. Default value=251
         
         
 
+        +++ system_evaluation_fields
         +++ market_state_null_default
         
 
@@ -270,7 +284,7 @@ class TradingSystem:
 
 
 
-        :param full_pos_list_slice_param:
+        --- :param full_pos_list_slice_param:
             Keyword arg 'None/int' : Provide an int which the full list of Position 
             objects will be sliced on when inserted to database. Default value=0
         
@@ -309,7 +323,7 @@ class TradingSystem:
                 # som anropas och passas vardet av instrument för att haemta capital_f vaedet för just
                 # det instrumentet
             else:
-                capital_f = 1.0#capital_fraction 
+                capital_f = 1.0#capital_fraction er detta bra löst?
 
             pos_manager = PositionManager(
                 instrument, len(data), capital, capital_f, 
@@ -363,34 +377,20 @@ class TradingSystem:
                     monte_carlo_summary_data_dict, ignore_index=True
                 )
 
-            # add position sizing data to the SignalHandler
-            """ if len(pos_manager.metrics.positions) > 0 and self.__signal_handler.entry_signal_given or \
-                market_state_null_default:
-                avg_yearly_positions = len(pos_manager.metrics.positions) / (len(data) / yearly_periods)
-                self.__signal_handler.add_pos_sizing_evaluation_data(
-                    self.__pos_sizer(
-                        pos_manager.metrics.positions, len(data),
-                        forecast_positions=avg_yearly_positions * (2 + 1), 
-                        forecast_data_fraction=(avg_yearly_positions * 2) / (avg_yearly_positions * (2 + 1)), #(avg_yearly_positions / len(pos_manager.metrics.positions)) * 2,
-                        persistant_safe_f=persistant_capital_f,
-                        #forecast_positions=avg_yearly_positions * (2 + 1), forecast_data_fraction=(avg_yearly_positions / len(pos_manager.metrics.positions)) * 2,
-                        #forecast_data_fraction=(avg_yearly_positions / len(pos_manager.metrics.positions)) * 2,
-                        capital=capital, num_of_sims=num_of_monte_carlo_sims, symbol=instrument,
-                        print_dataframe=print_monte_carlo_df, plot_monte_carlo_sims=plot_monte_carlo,
-                        metrics_dict=pos_manager.metrics.summary_data_dict
-                    )
-                ) """
+            # add system evaluation data to the SignalHandler
             if len(pos_manager.metrics.positions) > 0 and self.__signal_handler.entry_signal_given or \
                 market_state_null_default:
-                self.__signal_handler.add_pos_sizing_evaluation_data(
-                    pos_manager.metrics.summary_data_dict
+                self.__signal_handler.add_system_evaluation_data(
+                    pos_manager.metrics.summary_data_dict, system_evaluation_fields
                 )
 
+            # implementera protocols för db instert functions?
             if insert_data_to_db_bool and single_symbol_pos_list_db_insert_func:
                 single_symbol_pos_list_db_insert_func(
                     self.__system_name, instrument, 
                     pos_manager.metrics.positions[:], len(data)
                 )
+            # implementera protocols för db instert functions?
             if insert_data_to_db_bool and json_format_single_symbol_pos_list_db_insert_func:
                 json_format_single_symbol_pos_list_db_insert_func(
                     self.__system_name, instrument,
@@ -432,6 +432,7 @@ class TradingSystem:
                 write_signals_to_file_path, self.__system_name
             )
 
+        # implementera protocols för db instert functions?
         if insert_data_to_db_bool and signal_handler_db_insert_funcs:
             self.__signal_handler.insert_into_db(
                 signal_handler_db_insert_funcs, self.__system_name
@@ -445,11 +446,13 @@ class TradingSystem:
         full_pos_list_slice_param = int(
             avg_yearly_positions * (pos_list_slice_years_est + (pos_list_slice_years_est / 2)) + 0.5
         )
+        # implementera protocols för db instert functions?
         if insert_data_to_db_bool and full_pos_list_db_insert_func:
             full_pos_list_db_insert_func(
                 self.__system_name,
                 sorted(self.__full_pos_list, key=lambda x: x.entry_dt)[-full_pos_list_slice_param:]
             )
+        # implementera protocols för db instert functions?
         if insert_data_to_db_bool and json_format_full_pos_list_db_insert_func:
             json_format_full_pos_list_db_insert_func(
                 self.__system_name,
