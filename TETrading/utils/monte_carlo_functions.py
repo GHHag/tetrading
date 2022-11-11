@@ -405,7 +405,8 @@ def calculate_safe_f(
         print_dataframe=print_dataframe
     )
 
-    max_dds = sorted([dd['Max drawdown (%)'] for dd in monte_carlo_sims_dicts_list])
+    #max_dds = sorted([dd['Max drawdown (%)'] for dd in monte_carlo_sims_dicts_list])
+    max_dds = sorted([dd['max_drawdown_(%)'] for dd in monte_carlo_sims_dicts_list])
     dd_at_tolerated_threshold = max_dds[int(len(max_dds) * max_dd_pctl_threshold)]
 
     if dd_at_tolerated_threshold <= 0: dd_at_tolerated_threshold = 1

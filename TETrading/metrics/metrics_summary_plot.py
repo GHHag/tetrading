@@ -95,7 +95,7 @@ def system_metrics_summary_plot(
 
     try:
         mae_mfe_dict = {
-            # haemta från propsklass/consts
+            # haemta från propsklass/consts #
             'Positions in Historic Order': np.arange(0, len(position_returns_list)),
             'MFE': mfe_data,
             'Return': position_returns_list,
@@ -131,7 +131,7 @@ def system_metrics_summary_plot(
 
     axs[1, 3].text(
         0.2, 0.3, 
-        # haemta från propsklass/consts
+        # haemta från propsklass/consts #
         f'Win rate:                {format(summary_data_dict["% wins"], ".2f")}%\n\n'
         f'Gross profit             {summary_data_dict["Total gross profit"]}\n\n'
         f'Profit factor:           {summary_data_dict["Profit factor"]}\n\n'
@@ -328,7 +328,7 @@ def alt_system_metrics_summary_plot(
 
     axs[1, 3].text(
         0.2, 0.3, 
-        # haemta från propsklass/consts
+        # haemta från propsklass/consts #
         f'Win rate:                {format(summary_data_dict["%_wins"], ".2f")}%\n\n'
         f'Gross profit             {summary_data_dict["total_gross_profit"]}\n\n'
         f'Profit factor:           {summary_data_dict["profit_factor"]}\n\n'

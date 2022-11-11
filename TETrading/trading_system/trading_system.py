@@ -71,7 +71,7 @@ class TradingSystem:
         return self.__pos_lists
 
     def _create_metrics_df(self):
-        #return pd.DataFrame(
+        #return pd.DataFrame( #
         """ columns=[
             'Symbol', 'Number of positions', 'Start capital', 'Final capital',
             'Total gross profit', 'Avg pos net profit', '% wins', 'Profit factor',
@@ -171,8 +171,7 @@ class TradingSystem:
         return monte_carlo_sims_dicts_list, period_len
 
     def __call__(
-        #self, *args, capital=10000, capital_fraction=1.0,
-        self, *args, capital=10000, capital_fractions_dict=None,#1.0,
+        self, *args, capital=10000, capital_fraction=None,
         system_evaluation_fields=(
             'symbol', 'sharpe_ratio', 'expectancy', 'profit_factor', 
             'cagr_(%)', '%_wins', 'mean_return', 'max_drawdown_(%)', 'romad'
@@ -312,18 +311,18 @@ class TradingSystem:
                 input('Enter to proceed')
                 continue
 
-            # if capital_fraction is a dict containing a key with the current value of 
+            # if capital_fraction is a dict containing a key with the current value of
             # 'instrument', its value will be assigned to 'capital_f'
-            #if isinstance(capital_fraction, dict) and instrument in capital_fraction:
-            if isinstance(capital_fractions_dict, dict) and instrument in capital_fractions_dict:
-                #capital_f = capital_fraction[instrument]
-                capital_f = capital_fractions_dict[instrument]
+            if isinstance(capital_fraction, dict) and instrument in capital_fraction:
+                capital_f = capital_fraction[instrument]
                 # om inte capital_fraction ska hanteras som en dict daer varden för alla instrument skickas
                 # med behöver den vara en instans av ett objekt, text PositionSizer med en get-funktion
                 # som anropas och passas vardet av instrument för att haemta capital_f vaedet för just
                 # det instrumentet
+            elif isinstance(capital_fraction, float):
+                capital_f = capital_fraction
             else:
-                capital_f = 1.0#capital_fraction er detta bra löst?
+                capital_f = 1.0# e detta bra löst?
 
             pos_manager = PositionManager(
                 instrument, len(data), capital, capital_f, 
@@ -384,13 +383,13 @@ class TradingSystem:
                     pos_manager.metrics.summary_data_dict, system_evaluation_fields
                 )
 
-            # implementera protocols för db instert functions?
+            # implementera protocols för db instert functions? #
             if insert_data_to_db_bool and single_symbol_pos_list_db_insert_func:
                 single_symbol_pos_list_db_insert_func(
                     self.__system_name, instrument, 
                     pos_manager.metrics.positions[:], len(data)
                 )
-            # implementera protocols för db instert functions?
+            # implementera protocols för db instert functions? #
             if insert_data_to_db_bool and json_format_single_symbol_pos_list_db_insert_func:
                 json_format_single_symbol_pos_list_db_insert_func(
                     self.__system_name, instrument,
