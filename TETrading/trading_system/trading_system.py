@@ -109,10 +109,10 @@ class TradingSystem:
             self.__monte_carlo_simulations_df.to_string()
         )
 
-    def run_monte_carlo_simulation(
-        self, capital_f, forecast_positions=500, forecast_data_fraction=0.7, capital=10000, 
-        num_of_sims=1500, plot_fig=False, save_fig_to_path=None, print_dataframe=False
-    ):
+    #def run_monte_carlo_simulation(
+    #    self, capital_f, forecast_positions=500, forecast_data_fraction=0.7, capital=10000, 
+    #    num_of_sims=1500, plot_fig=False, save_fig_to_path=None, print_dataframe=False
+    #):
         """
         Simulates randomized sequences of given trades and
         returns data generated from the simulations.
@@ -152,7 +152,7 @@ class TradingSystem:
             over.
         """
 
-        # data amount for monte carlo simulations
+        """ # data amount for monte carlo simulations
         split_data_fraction = 1.0
         if len(self.__full_pos_list) >= forecast_positions:
             split_data_fraction = forecast_positions / len(self.__full_pos_list)
@@ -168,10 +168,10 @@ class TradingSystem:
             plot_fig=plot_fig, save_fig_to_path=save_fig_to_path
         )
 
-        return monte_carlo_sims_dicts_list, period_len
+        return monte_carlo_sims_dicts_list, period_len """
 
     def __call__(
-        self, *args, capital=10000, capital_fraction=None,
+        self, *args, capital=10000, capital_fraction=None, avg_yearly_periods=251,
         system_evaluation_fields=(
             'symbol', 'sharpe_ratio', 'expectancy', 'profit_factor', 
             'cagr_(%)', '%_wins', 'mean_return', 'max_drawdown_(%)', 'romad'
@@ -201,12 +201,16 @@ class TradingSystem:
         :param capital:
             Keyword arg 'int/float' : The amount of capital to purchase assets with.
             Default value=10000
+
+
+        # typ aendrad för detta kwarg
         :param capital_fraction:
             Keyword arg 'float' : The fraction of the capital that will be used
             to purchase assets with. Default value=1.0
         
 
 
+        +++ avg_yearly_periods
         --- :param yearly_periods:
             Keyword arg 'int' : The number of periods in a year for the time frame
             of the given datasets. Default value=251
@@ -315,14 +319,11 @@ class TradingSystem:
             # 'instrument', its value will be assigned to 'capital_f'
             if isinstance(capital_fraction, dict) and instrument in capital_fraction:
                 capital_f = capital_fraction[instrument]
-                # om inte capital_fraction ska hanteras som en dict daer varden för alla instrument skickas
-                # med behöver den vara en instans av ett objekt, text PositionSizer med en get-funktion
-                # som anropas och passas vardet av instrument för att haemta capital_f vaedet för just
-                # det instrumentet
+            # if capital_fraction is a float its value will be assigned to 'capital_f'
             elif isinstance(capital_fraction, float):
                 capital_f = capital_fraction
             else:
-                capital_f = 1.0# e detta bra löst?
+                capital_f = 1.0
 
             pos_manager = PositionManager(
                 instrument, len(data), capital, capital_f, 
@@ -431,32 +432,40 @@ class TradingSystem:
                 write_signals_to_file_path, self.__system_name
             )
 
-        # implementera protocols för db instert functions?
+        # implementera protocols för db instert functions? #
         if insert_data_to_db_bool and signal_handler_db_insert_funcs:
             self.__signal_handler.insert_into_db(
                 signal_handler_db_insert_funcs, self.__system_name
             )
 
+        num_of_pos_insert_multiplier = pos_list_slice_years_est * 1.5
         sorted_pos_lists = sorted(self.__pos_lists, key=len, reverse=True)
         position_list_lengths = [len(i) for i in sorted_pos_lists[:int(len(self.__pos_lists) / 4 + 0.5)]] \
             if len(self.__pos_lists) > 1 \
             else [len(sorted_pos_lists[0])]
-        avg_yearly_positions = int(np.mean(position_list_lengths) / pos_list_slice_years_est + 0.5)
+        data_periods = [len(v) for k, v in self.__data_dict.items()][:int(len(self.__data_dict) / 4 + 0.5)]
+        avg_yearly_positions = int(np.mean(position_list_lengths) / (np.mean(data_periods) / avg_yearly_periods) + 0.5) * num_of_pos_insert_multiplier
         full_pos_list_slice_param = int(
-            avg_yearly_positions * (pos_list_slice_years_est + (pos_list_slice_years_est / 2)) + 0.5
+            #avg_yearly_positions * (pos_list_slice_years_est + (pos_list_slice_years_est / 2)) + 0.5
+            avg_yearly_positions * (pos_list_slice_years_est * 1.5) + 0.5
         )
-        # implementera protocols för db instert functions?
+        sorted_full_pos_list: list[Position] = sorted(self.__full_pos_list, key=lambda x: x.entry_dt)
+        sliced_pos_list: list[Position] = sorted_full_pos_list[-full_pos_list_slice_param:]
+        num_of_periods = avg_yearly_periods * pos_list_slice_years_est * num_of_pos_insert_multiplier
+        #print()
+        #print(self.__system_name)
+        #print(avg_yearly_positions)
+        #print(num_of_periods)
+        #input('TradingSystem')
+
+        # implementera protocols för db instert functions? #
         if insert_data_to_db_bool and full_pos_list_db_insert_func:
-            full_pos_list_db_insert_func(
-                self.__system_name,
-                sorted(self.__full_pos_list, key=lambda x: x.entry_dt)[-full_pos_list_slice_param:]
-            )
-        # implementera protocols för db instert functions?
+            full_pos_list_db_insert_func(self.__system_name, sliced_pos_list, num_of_periods)
+
+        # implementera protocols för db instert functions? #
         if insert_data_to_db_bool and json_format_full_pos_list_db_insert_func:
             json_format_full_pos_list_db_insert_func(
-                self.__system_name,
-                sorted(self.__full_pos_list, key=lambda x: x.entry_dt)[-full_pos_list_slice_param:],
-                format='json'
+                self.__system_name, sliced_pos_list, num_of_periods, format='json'
             )
 
         returns_distribution_plot(
