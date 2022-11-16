@@ -1,4 +1,5 @@
 import random
+from typing import List
 
 import pandas as pd
 import numpy as np
@@ -6,6 +7,8 @@ from matplotlib import pyplot as plt
 import matplotlib.patches as mpatches
 import matplotlib.ticker as mtick
 
+from TETrading.data.metadata.trading_system_simulation_metrics import TradingSystemSimulationMetrics
+from TETrading.position.position import Position
 from TETrading.position.position_manager import PositionManager
 from TETrading.utils.metric_functions import calculate_cagr
 
@@ -54,7 +57,6 @@ def monte_carlo_simulate_returns(
     """
 
     monte_carlo_sims_data = []
-
     equity_curves_list = []
     final_equity_list = []
     max_drawdowns_list = []
@@ -255,7 +257,7 @@ def monte_carlo_simulation_summary_data(data_dicts_list):
                 summarized_data[metric].remove(value)
 
     monte_carlo_summmary_data_dict = dict()
-    monte_carlo_summmary_data_dict['Symbol'] = summarized_data['Symbol'][0]
+    """ monte_carlo_summmary_data_dict['Symbol'] = summarized_data['Symbol'][0]
     monte_carlo_summmary_data_dict['Start capital'] = summarized_data['Start capital'][0]
     monte_carlo_summmary_data_dict['Median gross profit'] = round(np.median(summarized_data['Total gross profit']), 2)
     monte_carlo_summmary_data_dict['Median profit factor'] = round(np.median(summarized_data['Profit factor']), 3)
@@ -270,7 +272,23 @@ def monte_carlo_simulation_summary_data(data_dicts_list):
     monte_carlo_summmary_data_dict['Median CAGR (%)'] = str(round(np.median(summarized_data['CAGR (%)']), 2))
     monte_carlo_summmary_data_dict['Mean % wins'] = np.mean(summarized_data['% wins'])
     monte_carlo_summmary_data_dict['CAR25'] = summarized_data['CAR25'][-1]
-    monte_carlo_summmary_data_dict['CAR75'] = summarized_data['CAR75'][-1]
+    monte_carlo_summmary_data_dict['CAR75'] = summarized_data['CAR75'][-1] """
+    monte_carlo_summmary_data_dict[TradingSystemSimulationMetrics.SYMBOL] = summarized_data['symbol'][0]
+    monte_carlo_summmary_data_dict[TradingSystemSimulationMetrics.START_CAPITAL] = summarized_data['start_capital'][0]
+    monte_carlo_summmary_data_dict[TradingSystemSimulationMetrics.MEDIAN_GROSS_PROFIT] = round(np.median(summarized_data['total_gross_profit']), 2)
+    monte_carlo_summmary_data_dict[TradingSystemSimulationMetrics.MEDIAN_PROFIT_FACTOR] = round(np.median(summarized_data['profit_factor']), 3)
+    monte_carlo_summmary_data_dict[TradingSystemSimulationMetrics.MEDIAN_EXPECTANCY] = round(np.median(summarized_data['expectancy']), 3)
+    monte_carlo_summmary_data_dict[TradingSystemSimulationMetrics.AVG_RATE_OF_RETURN] = str(round(np.mean(summarized_data['rate_of_return']), 2))
+    monte_carlo_summmary_data_dict[TradingSystemSimulationMetrics.MEDIAN_RATE_OF_RETURN] = str(round(np.median(summarized_data['rate_of_return']), 2))
+    monte_carlo_summmary_data_dict[TradingSystemSimulationMetrics.MEDIAN_MAX_DRAWDOWN] = \
+        str(round(np.median(summarized_data['max_drawdown_(%)']), 2))
+    monte_carlo_summmary_data_dict[TradingSystemSimulationMetrics.AVG_ROMAD] = str(round(np.mean(summarized_data['romad']), 2))
+    monte_carlo_summmary_data_dict[TradingSystemSimulationMetrics.MEDIAN_ROMAD] = str(round(np.median(summarized_data['romad']), 2))
+    monte_carlo_summmary_data_dict[TradingSystemSimulationMetrics.AVG_CAGR] = str(round(np.mean(summarized_data['cagr_(%)']), 2))
+    monte_carlo_summmary_data_dict[TradingSystemSimulationMetrics.MEDIAN_CAGR] = str(round(np.median(summarized_data['cagr_(%)']), 2))
+    monte_carlo_summmary_data_dict[TradingSystemSimulationMetrics.MEAN_PCT_WINS] = np.mean(summarized_data['%_wins'])
+    #monte_carlo_summmary_data_dict['CAR25'] = summarized_data['CAR25'][-1]
+    #monte_carlo_summmary_data_dict['CAR75'] = summarized_data['CAR75'][-1]
 
     return monte_carlo_summmary_data_dict
 
@@ -341,9 +359,9 @@ def monte_carlo_simulate_positions(
 
 
 def calculate_safe_f(
-    positions, period_len, tolerated_pct_max_dd, max_dd_pctl_threshold,
-    forecast_positions=500, forecast_data_fraction=0.5, capital=10000, 
-    num_of_sims=2500, symbol='', print_dataframe=False
+    positions: List[Position], period_len, tolerated_pct_max_dd, max_dd_pctl_threshold,
+    forecast_data_fraction=0.5, capital=10000, num_of_sims=2500, symbol='', 
+    print_dataframe=False
 ):
     """
     Calls method to simulate given sequence of positions and
@@ -367,9 +385,16 @@ def calculate_safe_f(
         max_drawdown_percentile_threshold = 0.8
         The Safe-F will be held at a level so that 80% of the
         distribution of maximum drawdown values will be 15% or less.
-    :param forecast_positions:
+    
+
+
+
+    --- :param forecast_positions:
         Keyword arg 'int' : The maximum number of positions to use in the
         simulation. Default value=500
+    
+    
+    
     :param forecast_data_fraction:
         Keyword arg 'float' : The fraction of data to use in the
         simulation. Default value=0.5
@@ -391,21 +416,17 @@ def calculate_safe_f(
         'float'
     """
 
-    split_data_fraction = 1.0
-    if len(positions) >= forecast_positions:
-        split_data_fraction = forecast_positions / len(positions)
-
-    period_len = int(period_len * split_data_fraction)
+    period_len = int(period_len * forecast_data_fraction)
     # sort positions on date
     positions.sort(key=lambda tr: tr.entry_dt)
 
     monte_carlo_sims_dicts_list = monte_carlo_simulate_returns(
-        positions[-(int(len(positions) * split_data_fraction)):], symbol, period_len,
+        positions[-(int(len(positions) * forecast_data_fraction)):], symbol, period_len,
         start_capital=capital, num_of_sims=num_of_sims, data_amount_used=forecast_data_fraction,
         print_dataframe=print_dataframe
     )
 
-    #max_dds = sorted([dd['Max drawdown (%)'] for dd in monte_carlo_sims_dicts_list])
+    #max_dds = sorted([dd['Max drawdown (%)'] for dd in monte_carlo_sims_dicts_list]) #
     max_dds = sorted([dd['max_drawdown_(%)'] for dd in monte_carlo_sims_dicts_list])
     dd_at_tolerated_threshold = max_dds[int(len(max_dds) * max_dd_pctl_threshold)]
 

@@ -5,6 +5,8 @@ from typing import Callable, Dict
 import pandas as pd
 import numpy as np
 
+from TETrading.data.metadata.trading_system_metrics import TradingSystemMetrics
+from TETrading.data.metadata.trading_system_simulation_metrics import TradingSystemSimulationMetrics
 from TETrading.position.position import Position
 from TETrading.position.position_manager import PositionManager
 from TETrading.trading_system.trading_session import TradingSession
@@ -33,10 +35,13 @@ class TradingSystem:
         The logic used to exit a position.
     """
 
-    def __init__(self, system_name, data_dict, entry_logic_function, exit_logic_function):
+    def __init__(
+        self, system_name, data_dict: Dict[str, pd.DataFrame], 
+        entry_logic_function: Callable, exit_logic_function: Callable
+    ):
         self.__system_name = system_name
         assert isinstance(data_dict, dict), \
-            'Parameter \'data_dict\' must be a dict with format key "Symbol" (str): value (Pandas.DataFrame)'
+            "Parameter 'data_dict' must be a dict with format key 'Symbol' (str): value (Pandas.DataFrame)"
         self.__data_dict = data_dict
         assert isfunction(entry_logic_function), \
             "Parameter 'entry_logic_function' must be a function."
@@ -52,7 +57,6 @@ class TradingSystem:
         self.__full_mae_list = np.array([])
         self.__full_mfe_list = np.array([])
 
-        # Instantiate SignalHandler object
         self.__signal_handler = SignalHandler()
 
         self.__metrics_df: pd.DataFrame = self._create_metrics_df()
@@ -71,37 +75,13 @@ class TradingSystem:
         return self.__pos_lists
 
     def _create_metrics_df(self):
-        #return pd.DataFrame( #
-        """ columns=[
-            'Symbol', 'Number of positions', 'Start capital', 'Final capital',
-            'Total gross profit', 'Avg pos net profit', '% wins', 'Profit factor',
-            'Sharpe ratio', 'Rate of return', 'Mean P/L', 'Median P/L', 'Std of P/L',
-            'Mean return', 'Median return', 'Std of returns', 'Expectancy',
-            'Avg MAE', 'Min MAE', 'Avg MFE', 'Max MFE', 'Max drawdown (%)', 
-            'RoMad', 'CAGR (%)'
-        ] """
-        return pd.DataFrame(
-            columns=[
-                'symbol', 'number_of_positions', 'start_capital', 'final_capital',
-                'total_gross_profit', 'avg_pos_net_profit', '%_wins', 'profit_factor',
-                'sharpe_ratio', 'rate_of_return', 'mean_p/l', 'median_p/l', 'std_of_p/l',
-                'mean_return', 'median_return', 'std_of_returns', 'expectancy',
-                'avg_mae', 'min_mae', 'avg_mfe', 'max_mfe', 'max_drawdown_(%)', 
-                'romad', 'cagr_(%)'
-            ]
-        )
+        return pd.DataFrame(columns=TradingSystemMetrics.cls_attrs)
 
     def _print_metrics_df(self):
         print('\nSystem performance summary: \n', self.__metrics_df.to_string())
 
     def _create_monte_carlo_sims_df(self):
-        return pd.DataFrame(
-            columns=[
-                'Symbol', 'Start capital', 'Median gross profit', 'Median profit factor', 
-                'Median expectancy', 'Avg RoR', 'Median RoR', 'Median max drawdown (%)', 
-                'Avg RoMad', 'Median RoMad', 'Avg CAGR (%)', 'Median CAGR (%)', 'Mean % wins'
-            ]
-        )
+        return pd.DataFrame(columns=TradingSystemSimulationMetrics.cls_attrs)
 
     def _print_monte_carlo_sims_df(self, num_of_monte_carlo_sims):
         print(
@@ -109,70 +89,10 @@ class TradingSystem:
             self.__monte_carlo_simulations_df.to_string()
         )
 
-    #def run_monte_carlo_simulation(
-    #    self, capital_f, forecast_positions=500, forecast_data_fraction=0.7, capital=10000, 
-    #    num_of_sims=1500, plot_fig=False, save_fig_to_path=None, print_dataframe=False
-    #):
-        """
-        Simulates randomized sequences of given trades and
-        returns data generated from the simulations.
-
-        Parameters
-        ----------
-        :param capital_f:
-            'float' : The fraction of capital to be used when 
-            when simulating asset purchases.
-        :param forecast_positions:
-            Keyword arg 'int' : The number of trades to
-            use in the Monte Carlo simulation.
-            Default value=500
-        :param forecast_data_fraction:
-            Keyword arg 'float' : The fraction of data to be used
-            in the simulation. Default value=0.5
-        :param capital:
-            Keyword arg 'int/float' : The amount of capital
-            to purchase assets with. Default value=10000
-        :param num_of_sims:
-            Keyword arg 'int' : The number of simulations to run.
-            Default value=1500
-        :param plot_fig:
-            Keyword arg 'bool' : True/False decides whether
-            to plot a figure with data from the Monte Carlo
-            simulations or not. Default value=False
-        :param save_fig_to_path:
-            Keyword arg 'None/str' : Provide a file path as a
-            string to save the plot as a file. Default value=None
-        :param print_dataframe:
-            Keyword arg 'bool' : True/False decides whether to print
-            the dataframe to console or not. Default value=False
-
-        :return:
-            'tuple' containing a 'dict' with metrics and an 'int' with
-            the number of periods the simulated positions were generated
-            over.
-        """
-
-        """ # data amount for monte carlo simulations
-        split_data_fraction = 1.0
-        if len(self.__full_pos_list) >= forecast_positions:
-            split_data_fraction = forecast_positions / len(self.__full_pos_list)
-
-        period_len = int(self.__total_period_len * split_data_fraction)
-        # sort positions by date
-        self.__full_pos_list.sort(key=lambda x: x.entry_dt)
-
-        monte_carlo_sims_dicts_list = monte_carlo_simulate_returns(
-            self.__full_pos_list[-(int(len(self.__full_pos_list) * split_data_fraction)):], '', period_len, 
-            start_capital=capital, capital_fraction=capital_f, num_of_sims=num_of_sims, 
-            data_amount_used=forecast_data_fraction, print_dataframe=print_dataframe,
-            plot_fig=plot_fig, save_fig_to_path=save_fig_to_path
-        )
-
-        return monte_carlo_sims_dicts_list, period_len """
-
     def __call__(
         self, *args, capital=10000, capital_fraction=None, avg_yearly_periods=251,
         system_evaluation_fields=(
+            #TradingSystemMetrics.SYMBOL,
             'symbol', 'sharpe_ratio', 'expectancy', 'profit_factor', 
             'cagr_(%)', '%_wins', 'mean_return', 'max_drawdown_(%)', 'romad'
         ),
@@ -444,19 +364,12 @@ class TradingSystem:
             if len(self.__pos_lists) > 1 \
             else [len(sorted_pos_lists[0])]
         data_periods = [len(v) for k, v in self.__data_dict.items()][:int(len(self.__data_dict) / 4 + 0.5)]
-        avg_yearly_positions = int(np.mean(position_list_lengths) / (np.mean(data_periods) / avg_yearly_periods) + 0.5) * num_of_pos_insert_multiplier
-        full_pos_list_slice_param = int(
-            #avg_yearly_positions * (pos_list_slice_years_est + (pos_list_slice_years_est / 2)) + 0.5
-            avg_yearly_positions * (pos_list_slice_years_est * 1.5) + 0.5
-        )
+        avg_yearly_positions = int(np.mean(position_list_lengths) / (np.mean(data_periods) / avg_yearly_periods) + 0.5) \
+            * num_of_pos_insert_multiplier
+        full_pos_list_slice_param = int(avg_yearly_positions * (pos_list_slice_years_est * 1.5) + 0.5)
         sorted_full_pos_list: list[Position] = sorted(self.__full_pos_list, key=lambda x: x.entry_dt)
         sliced_pos_list: list[Position] = sorted_full_pos_list[-full_pos_list_slice_param:]
         num_of_periods = avg_yearly_periods * pos_list_slice_years_est * num_of_pos_insert_multiplier
-        #print()
-        #print(self.__system_name)
-        #print(avg_yearly_positions)
-        #print(num_of_periods)
-        #input('TradingSystem')
 
         # implementera protocols för db instert functions? #
         if insert_data_to_db_bool and full_pos_list_db_insert_func:

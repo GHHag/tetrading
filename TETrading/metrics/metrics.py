@@ -218,7 +218,7 @@ class Metrics:
         return {
             'symbol': self.__symbol,
             'number_of_positions': len(self.__returns_list),
-            'Start_capital': self.__start_capital,
+            'start_capital': self.__start_capital,
             'final_capital': self.__final_capital,
             'total_gross_profit': self.__total_gross_profit,
             'avg_pos_net_profit': round(self.__avg_pos_net_result, 3),

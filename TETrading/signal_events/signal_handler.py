@@ -1,4 +1,4 @@
-from TETrading.utils.metadata.market_state_enum import MarketState
+from TETrading.data.metadata.market_state_enum import MarketState
 from TETrading.signal_events.signals.system_signals import SystemSignals
 
 

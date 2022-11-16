@@ -2,8 +2,8 @@ from decimal import Decimal
 
 import pandas as pd
 
-from TETrading.utils.metadata.market_state_enum import MarketState
-from TETrading.utils.metadata.trading_system_attributes import TradingSystemAttributes
+from TETrading.data.metadata.market_state_enum import MarketState
+from TETrading.data.metadata.trading_system_attributes import TradingSystemAttributes
 from TETrading.position.position import Position
 from TETrading.signal_events.signal_handler import SignalHandler
 from TETrading.plots.candlestick_plots import candlestick_plot
