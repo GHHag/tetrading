@@ -59,8 +59,14 @@ class TradingSystem:
 
         self.__signal_handler = SignalHandler()
 
-        self.__metrics_df: pd.DataFrame = self._create_metrics_df()
-        self.__monte_carlo_simulations_df: pd.DataFrame = self._create_monte_carlo_sims_df()
+        #self.__metrics_df: pd.DataFrame = self._create_metrics_df()
+        self.__metrics_df: pd.DataFrame = pd.DataFrame(
+            columns=TradingSystemMetrics.cls_attrs
+        )
+        #self.__monte_carlo_simulations_df: pd.DataFrame = self._create_monte_carlo_sims_df()
+        self.__monte_carlo_simulations_df: pd.DataFrame = pd.DataFrame(
+            columns=TradingSystemSimulationMetrics.cls_attrs
+        )
 
     @property
     def total_period_len(self):
@@ -74,14 +80,14 @@ class TradingSystem:
     def pos_lists(self):
         return self.__pos_lists
 
-    def _create_metrics_df(self):
-        return pd.DataFrame(columns=TradingSystemMetrics.cls_attrs)
+    #def _create_metrics_df(self):
+    #    return pd.DataFrame(columns=TradingSystemMetrics.cls_attrs)
 
     def _print_metrics_df(self):
         print('\nSystem performance summary: \n', self.__metrics_df.to_string())
 
-    def _create_monte_carlo_sims_df(self):
-        return pd.DataFrame(columns=TradingSystemSimulationMetrics.cls_attrs)
+    #def _create_monte_carlo_sims_df(self):
+    #    return pd.DataFrame(columns=TradingSystemSimulationMetrics.cls_attrs)
 
     def _print_monte_carlo_sims_df(self, num_of_monte_carlo_sims):
         print(

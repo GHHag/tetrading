@@ -37,5 +37,5 @@ class TradingSystemMetrics:
         #return [v for v in cls.__dict__.values() if isinstance(v, str) and v != '__main__' and v != 'TETrading.utils.metadata.trading_system_metrics']
         return [
             v for v in cls.__dict__.values() if isinstance(v, str) and \
-            v not in  ['__main__', 'TETrading.utils.metadata.trading_system_metrics']
+            v not in ['__main__', 'TETrading.data.metadata.trading_system_metrics']
         ]
