@@ -1,7 +1,7 @@
 from TETrading.data.metadata.trading_system_attributes import classproperty
 
 
-class TradingSystemSimulationMetrics:
+class TradingSystemSimulationAttributes:
 
     __SYMBOL = 'symbol'
     __START_CAPITAL = 'start_capital'
@@ -71,7 +71,6 @@ class TradingSystemSimulationMetrics:
 
     @classproperty
     def cls_attrs(cls):
-        #return [v for v in cls.__dict__.values() if isinstance(v, str) and v != '__main__' and v != 'TETrading.utils.metadata.trading_system_metrics']
         return [
             v for v in cls.__dict__.values() if isinstance(v, str) and \
             v not in  ['__main__', 'TETrading.data.metadata.trading_system_simulation_metrics']

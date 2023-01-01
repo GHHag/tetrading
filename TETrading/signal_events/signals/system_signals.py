@@ -33,7 +33,19 @@ class SystemSignals:
             return f'{self.__data_list}'
 
     def get_pos_sizer_dict(self, position_sizing_metric_str):
-        return {x['symbol']: x['data'][position_sizing_metric_str] for x in self.__data_list}
+        """
+        Formats and returns the __data_list member.
+
+        :param position_sizing_metric_str:
+            'str' : The system's position sizing metric as a string.
+        :return:
+            'dict'
+        """
+        
+        return {
+            x['symbol']: x['data'][position_sizing_metric_str] 
+            for x in self.__data_list
+        }
 
     def add_data(self, symbol, data_dict):
         """

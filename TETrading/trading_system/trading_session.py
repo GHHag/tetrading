@@ -93,6 +93,10 @@ class TradingSession:
             Keyword arg 'float' : The transaction cost given as a percentage
             (a float from 0.0 to 1.0) of the total transaction.
             Default value=0.0
+        :param market_state_null_default:
+            Keyword arg 'bool' : True/False decides whether the market_state
+            property should be assigned a null value by default or not.
+            Default value=False
         :param generate_signals:
             Keyword arg 'bool' : True/False decides whether or not market
             events/signals should be generated from the most recent data.

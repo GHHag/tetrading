@@ -54,152 +54,6 @@ def system_metrics_summary_plot(
     axs[0, 0].set_xlabel('Periods')
     axs[0, 0].set_ylabel('Equity')
 
-    axs[0, 1].plot(underlying_price_series, color='black', linewidth=2)
-    axs[0, 1].xaxis.set_major_locator(MaxNLocator(integer=True))
-    axs[0, 1].set_title(f'{symbol} Price')
-    axs[0, 1].set_xlabel('Periods')
-    axs[0, 1].set_ylabel('Price')
-
-    axs[0, 2].hist(
-        returns_data, edgecolor='black', linewidth=1.2, orientation='vertical',
-        bins=int(np.sqrt(len(returns_data)))
-    )
-    axs[0, 2].yaxis.set_major_locator(MaxNLocator(integer=True))
-    axs[0, 2].set_title('Returns Distribution')
-    axs[0, 2].set_xlabel('Return')
-    axs[0, 2].set_ylabel('Frequency')
-
-    axs[0, 3].hist(
-        position_period_lengths, edgecolor='black', linewidth=1.2, 
-        orientation='horizontal', bins=len(position_period_lengths)
-    )
-    axs[0, 3].yaxis.set_major_locator(MaxNLocator(integer=True))
-    axs[0, 3].xaxis.set_major_locator(MaxNLocator(integer=True))
-    axs[0, 3].set_title('Position Period Lengths')
-    axs[0, 3].set_xlabel('Frequency')
-    axs[0, 3].set_ylabel('Periods')
-
-    axs[1, 0].stem(
-        [x for x in range(len(returns_data))], sorted(returns_data), 
-        markerfmt=' ', use_line_collection=True
-    )
-    axs[1, 0].set_title('Sorted Returns Distribution')
-    axs[1, 0].set_xlabel('Periods')
-    axs[1, 0].set_ylabel('Return')
-
-    axs[1, 1].bar([x for x in range(len(returns_data))], returns_data)
-    axs[1, 1].axhline(y=0, color='black', linewidth=0.5)
-    axs[1, 1].set_title('Returns in Historic Order')
-    axs[1, 1].set_xlabel('Periods')
-    axs[1, 1].set_ylabel('Return')
-
-    try:
-        mae_mfe_dict = {
-            # haemta från propsklass/consts #
-            'Positions in Historic Order': np.arange(0, len(position_returns_list)),
-            'MFE': mfe_data,
-            'Return': position_returns_list,
-            'MAE': mae_data
-        }
-        ch_df = pd.DataFrame(mae_mfe_dict)
-
-        ch_df.plot(
-            x='Positions in Historic Order', y='MFE', kind='bar', 
-            ax=axs[1, 2], color='green'
-        )
-        ch_df.plot(
-            x='Positions in Historic Order', y='MAE', kind='bar', 
-            ax=axs[1, 2], color='red'
-        )
-        ch_df.plot(
-            x='Positions in Historic Order', y='Return', kind='bar', 
-            ax=axs[1, 2], color='black'
-        )
-        axs[1, 2].set_title('MFE, MAE, Return')
-        axs[1, 2].set_ylabel('Return')
-        try:
-            axs[1, 2].xaxis.set_ticks(
-                np.arange(0, len(position_returns_list), len(position_returns_list) - 1)
-            )
-        except ZeroDivisionError:
-            pass
-        axs[1, 2].xaxis.set_tick_params(rotation=0)
-        axs[1, 2].xaxis.grid(False)
-        axs[1, 2].yaxis.grid(True)
-    except TypeError:
-        print('\nMFE/MAE data missing')
-
-    axs[1, 3].text(
-        0.2, 0.3, 
-        # haemta från propsklass/consts #
-        f'Win rate:                {format(summary_data_dict["% wins"], ".2f")}%\n\n'
-        f'Gross profit             {summary_data_dict["Total gross profit"]}\n\n'
-        f'Profit factor:           {summary_data_dict["Profit factor"]}\n\n'
-        f'Sharpe ratio:            {summary_data_dict["Sharpe ratio"]}\n\n'
-        f'Expectancy:              {summary_data_dict["Expectancy"]}\n\n'
-        f'Max drawdown (%):        {format(summary_data_dict["Max drawdown (%)"], ".2f")}\n\n'
-        f'CAGR (%):                {summary_data_dict["CAGR (%)"]}', fontsize=12
-    )
-    axs[1, 3].axis('off')
-    axs[1, 3].set_title('Performance Summary')
-
-    plt.tight_layout()
-
-    if save_fig_to_path:
-        plt.savefig(save_fig_to_path + '\\' + symbol + '.jpg')
-    if plot_fig:
-        plt.show()
-    else:
-        plt.close('all')
-
-
-def alt_system_metrics_summary_plot(
-    returns_data, rolling_equity, underlying_price_series, mae_data,
-    mfe_data, position_returns_list, position_period_lengths, symbol, 
-    summary_data_dict, plot_fig=False, save_fig_to_path=None
-):
-    """
-    Plots a summary of metrics and statistics.
-
-    Parameters
-    ----------
-    :param returns_data:
-        'list' : A collection of returns data.
-    :param rolling_equity:
-        'list' : A collection of equity.
-    :param underlying_price_series:
-        'list' : A collection of a price series.
-    :param mae_data:
-        'list' : A collection of maximum adverse excursion data.
-    :param mfe_data:
-        'list' : A collection of maximum favorable excursion data.
-    :param position_returns_list:
-        'list' : A collection of position returns.
-    :param position_period_lengths:
-        'list' : A collection of position period lengths.
-    :param symbol:
-        'str' : The symbol/ticker of an asset.
-    :param summary_data_dict:
-        'dict' : A dict with data.
-    :param plot_fig:
-        Keyword arg 'bool' : True/False decides whether the plot
-        the charts or not. Default value=False
-    :param save_fig_to_path:
-        Keyword arg 'None/str' : Provide a file path as a string to
-        save the plot as a file. Default value=None
-    """
-
-    plt.style.use('seaborn')
-
-    fig, axs = plt.subplots(nrows=2, ncols=4, figsize=(18, 8.5))
-    fig.tight_layout()
-
-    axs[0, 0].plot(rolling_equity, color='navy', linewidth=2)
-    axs[0, 0].xaxis.set_major_locator(MaxNLocator(integer=True))
-    axs[0, 0].set_title('Equity')
-    axs[0, 0].set_xlabel('Periods')
-    axs[0, 0].set_ylabel('Equity')
-
     if underlying_price_series:
         underlying_returns = np.array(
             [
@@ -328,7 +182,6 @@ def alt_system_metrics_summary_plot(
 
     axs[1, 3].text(
         0.2, 0.3, 
-        # haemta från propsklass/consts #
         f'Win rate:                {format(summary_data_dict["%_wins"], ".2f")}%\n\n'
         f'Gross profit             {summary_data_dict["total_gross_profit"]}\n\n'
         f'Profit factor:           {summary_data_dict["profit_factor"]}\n\n'
@@ -351,7 +204,8 @@ def alt_system_metrics_summary_plot(
 
 
 def returns_distribution_plot(
-    market_to_market_returns, mae, mfe, plot_fig=False, save_fig_to_path=None
+    market_to_market_returns, mae, mfe, 
+    plot_fig=False, save_fig_to_path=None
 ):
     """
     Plots histograms of given collections of returns, maximum adverse excursion

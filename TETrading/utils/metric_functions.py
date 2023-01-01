@@ -9,6 +9,11 @@ def calculate_max_drawdown(price_series):
     Calculates and returns the maximum drawdown of the
     given price series member.
 
+    Parameters
+    ----------
+    :param price_series:
+        'list' : A collection with price time series data.
+
     :return:
         'float'
     """
@@ -43,8 +48,8 @@ def calculate_cagr(initial_value, final_value, num_of_periods, yearly_periods=25
         has been used to get the values of initial_value and
         final_value.
     :param yearly_periods:
-        'int' : The number of periods in a trading year
-        for the time frame in the dataset.
+        Keyword arg 'int' : The number of periods in a trading year
+        for the time frame in the dataset. Default value=251
 
     :return:
         'float'
@@ -75,10 +80,11 @@ def calculate_sharpe_ratio(
     :param returns_list:
         'list' : A list containing a sequence of returns.
     :param risk_free_rate:
-        'Decimal' : The yearly return of a risk free asset.
+        Keyword arg 'Decimal' : The yearly return of a risk free asset.
+        Default value=0.05
     :param yearly periods:
-        'int' : The number of periods in a trading year
-        for the time frame of the dataset.
+        Keyword arg 'int' : The number of periods in a trading year
+        for the time frame of the dataset. Default value=251
 
     :return:
         'Decimal'

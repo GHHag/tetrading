@@ -6,8 +6,7 @@ import numpy as np
 import pandas as pd
 
 from TETrading.position.position import Position
-from TETrading.metrics.metrics_summary_plot import system_metrics_summary_plot, \
-    alt_system_metrics_summary_plot
+from TETrading.metrics.metrics_summary_plot import system_metrics_summary_plot
 
 
 class Metrics:
@@ -21,8 +20,6 @@ class Metrics:
     ----------
     symbol : 'str'
         The symbol/ticker of an asset.
-    positions : 'list'
-        A list of Position objects.
     start_capital : 'int/float'
         The amount of capital to purchase assets with.
     num_testing_periods : 'int'
@@ -30,8 +27,7 @@ class Metrics:
         was generated from.
     """
     
-    # refaktorera -- flytta funktionalitet som nu ligger i __init__ till __call__()
-    def __init__(self, symbol, positions: List[Position], start_capital, num_testing_periods):
+    def __init__(self, symbol, start_capital, num_testing_periods):
         self.__symbol = symbol
         self.__start_capital = start_capital
         self.__positions = []
@@ -56,111 +52,6 @@ class Metrics:
         self.__mae_list = np.array([])
         self.__w_mae_list = np.array([])
         self.__mae_mfe_dataframe = pd.DataFrame()
-
-        for pos in iter(positions):
-            self.__positions.append(pos)
-            tot_entry_cap = pos.entry_price * pos.position_size
-            pos_value = tot_entry_cap
-            for mtm_return in pos.market_to_market_returns_list:
-                self.__equity_list = np.append(
-                    self.__equity_list, 
-                    round(self.__equity_list[-1] + pos_value * (mtm_return / 100), 2)
-                )
-                pos_value += pos_value * (mtm_return / 100)
-            self.__equity_list[-1] -= pos.commission
-
-            self.__profit_loss_list = np.append(
-                self.__profit_loss_list, float(pos.profit_loss)
-            )
-            self.__returns_list = np.append(
-                self.__returns_list, float(pos.position_return)
-            )
-            self.__market_to_market_returns_list = np.concatenate(
-                (self.__market_to_market_returns_list, pos.market_to_market_returns_list), axis=0
-            )
-            self.__pos_net_results_list = np.append(
-                self.__pos_net_results_list, pos.net_result
-            )
-            self.__pos_gross_results_list = np.append(
-                self.__pos_gross_results_list, pos.gross_result
-            )
-            self.__pos_period_lengths_list = np.append(
-                self.__pos_period_lengths_list, len(pos.returns_list)
-            )
-
-            if pos.profit_loss > 0:
-                self.__profitable_pos_list = np.append(
-                    self.__profitable_pos_list, float(pos.profit_loss)
-                )
-                self.__profitable_pos_returns_list = np.append(
-                    self.__profitable_pos_returns_list, pos.position_return
-                )
-                self.__net_wins_list = np.append(
-                    self.__net_wins_list, pos.net_result
-                )
-                self.__gross_wins_list = np.append(
-                    self.__gross_wins_list, pos.gross_result
-                )
-                self.__w_mae_list = np.append(
-                    self.__w_mae_list, float(pos.mae)
-                )
-            if pos.profit_loss <= 0:
-                self.__loosing_pos_list = np.append(
-                    self.__loosing_pos_list, float(pos.profit_loss)
-                )
-                self.__net_losses_list = np.append(
-                    self.__net_losses_list, pos.net_result
-                )
-                self.__gross_losses_list = np.append(
-                    self.__gross_losses_list, pos.gross_result
-                )
-
-            self.__mae_list = np.append(self.__mae_list, float(pos.mae))
-            self.__mfe_list = np.append(self.__mfe_list, float(pos.mfe))
-
-        self.__final_capital = int(self.__equity_list[-1])
-        if len(self.__profitable_pos_list) == 0:
-            self.__pct_wins = 0
-        else:
-            self.__pct_wins = len(self.__profitable_pos_list) / len(self.__positions) * 100
-        if len(self.__loosing_pos_list) == 0:
-            self.__pct_losses = 0
-        else:
-            self.__pct_losses = len(self.__loosing_pos_list) / len(self.__positions) * 100
-        self.__mean_profit_loss = np.mean(self.__profit_loss_list)
-        self.__median_profit_loss = np.median(self.__profit_loss_list)
-        self.__std_profit_loss = np.std(self.__profit_loss_list)
-        self.__mean_return = np.mean(self.__returns_list)
-        self.__median_return = np.median(self.__returns_list)
-        self.__std_return = np.std(self.__returns_list)
-
-        self.__mean_positive_pos = np.mean(self.__profitable_pos_list)
-        self.__median_positive_pos = np.median(self.__profitable_pos_list)
-        self.__mean_negative_pos = np.mean(self.__loosing_pos_list)
-        self.__median_negative_pos = np.median(self.__loosing_pos_list)
-
-        self.__total_gross_profit = self.__final_capital - self.__start_capital
-        self.__avg_pos_net_result = np.mean(self.__pos_net_results_list)
-
-        self.__cagr = self._calculate_cagr()
-        self.__max_drawdown = self._calculate_max_drawdown()
-        self.__rate_of_return = self._calculate_rate_of_return()
-        self.__avg_annual_profit = self._calculate_avg_annual_profit()
-        try:
-            self.__sharpe_ratio = self._calculate_sharpe_ratio()
-        except DivisionByZero:
-            self.__sharpe_ratio = np.nan
-        self.__expectancy = self._calculate_expectancy()
-        try:
-            self.__profit_factor = sum(self.__gross_wins_list) / abs(sum(self.__gross_losses_list))
-        except (DivisionByZero, ZeroDivisionError, InvalidOperation):
-            self.__profit_factor = 0
-        try:
-            self.__return_to_max_drawdown = self.__rate_of_return / float(self.__max_drawdown)
-        except ZeroDivisionError:
-            self.__return_to_max_drawdown = 0
-
-        self._mae_mfe_dataframe_apply()
 
     @property
     def positions(self):
@@ -241,31 +132,6 @@ class Metrics:
             'romad': round(self.__return_to_max_drawdown, 3),
             'cagr_(%)': round(self.__cagr, 3)
         }
-        """ 'Symbol': self.__symbol,
-        'Number of positions': len(self.__returns_list),
-        'Start capital': self.__start_capital,
-        'Final capital': self.__final_capital,
-        'Total gross profit': self.__total_gross_profit,
-        'Avg pos net profit': round(self.__avg_pos_net_result, 3),
-        '% wins': self.__pct_wins,
-        'Profit factor': round(self.__profit_factor, 3),
-        'Sharpe ratio': round(float(self.__sharpe_ratio), 3),
-        'Rate of return': self.__rate_of_return,
-        'Mean P/L': round(self.__mean_profit_loss, 3),
-        'Median P/L': round(self.__median_profit_loss, 3),
-        'Std of P/L': round(self.__std_profit_loss, 3),
-        'Mean return': round(self.__mean_return, 3),
-        'Median return': round(self.__median_return, 3),
-        'Std of returns': round(self.__std_return, 3),
-        'Expectancy': round(self.__expectancy, 3),
-        'Max drawdown (%)': float(self.__max_drawdown),
-        'Avg MAE': round(np.mean(self.__mae_list), 3),
-        'Min MAE': round(min(self.__mae_list), 3),
-        'Avg MFE': round(np.mean(self.__mfe_list), 3),
-        'Max MFE': round(max(self.__mfe_list), 3),
-        'RoMad': round(self.__return_to_max_drawdown, 3),
-        'CAGR (%)': round(self.__cagr, 3), """
-        #}
 
     def _mae_mfe_dataframe_apply(self):
         """
@@ -273,7 +139,6 @@ class Metrics:
         excursion and return data to the __mae_mfe_dataframe member.
         """
 
-        #try:
         if len(self.__mae_list) == 0 and len(self.__mfe_list) == 0 and len(self.__returns_list) == 0:
             self.__returns_list = np.append(self.__returns_list, 0)
         if len(self.__mae_list) == 0:
@@ -281,15 +146,9 @@ class Metrics:
         if len(self.__mfe_list) == 0:
             self.__mfe_list = np.append(self.__mfe_list, 0)
 
-        #self.__mae_mfe_dataframe['MAE data'] = self.__mae_list
-        #self.__mae_mfe_dataframe['MFE data'] = self.__mfe_list
-        #self.__mae_mfe_dataframe['Return'] = self.__returns_list
         self.__mae_mfe_dataframe['mae_data'] = self.__mae_list
         self.__mae_mfe_dataframe['mfe_data'] = self.__mfe_list
         self.__mae_mfe_dataframe['return'] = self.__returns_list
-
-        #except IndexError:#ValueError:
-        #    print('ValueError: Length of values does not match length of index for MAE, MFE, Actual returns')
 
     def _calculate_max_drawdown(self):
         """
@@ -429,53 +288,55 @@ class Metrics:
         Prints statistics and metrics to the console.
         """
 
-        print(f'\nSymbol: {self.__symbol}'
-              f'\nPerformance summary: '
-              f'\nNumber of positions: {len(self.__returns_list)}'
-              f'\nNumber of profitable positions: {len(self.__profitable_pos_list)}'
-              f'\nNumber of loosing positions: {len(self.__loosing_pos_list)}'
-              f'\n% wins: {format(self.__pct_wins, ".2f")}'
-              f'\n% losses: {format(self.__pct_losses, ".2f")}'
-              f'\nTesting periods: {self.__num_testing_periods}'
-              f'\nStart capital: {self.__start_capital}'
-              f'\nFinal capital: {format(self.__final_capital, ".3f")}'
-              f'\nTotal gross profit: {format(self.__total_gross_profit, ".3f")}'
-              f'\nAvg pos net profit: {format(self.__avg_pos_net_result, ".3f")}'
-              f'\nMean P/L: {format(self.__mean_profit_loss, ".3f")}'
-              f'\nMedian P/L: {format(self.__median_profit_loss, ".3f")}'
-              f'\nStd of P/L: {format(self.__std_profit_loss, ".3f")}'
-              f'\nMean return: {format(self.__mean_return, ".3f")}'
-              f'\nMedian return: {format(self.__median_return, ".3f")}'
-              f'\nStd of returns: {format(self.__std_return, ".3f")}'
-              f'\nExpectancy: {format(self.__expectancy, ".3f")}'
-              f'\nRate of return: {format(self.__rate_of_return, ".2f")}'
-              f'\nMax drawdown: {format(self.__max_drawdown, ".2f")}%'
-              f'\nRoMad: {format(self.__return_to_max_drawdown, ".3f")}%'
-              f'\nProfit factor: {format(self.__profit_factor, ".3f")}'
-              f'\nCAGR: {format(self.__cagr, ".2f")}%'
-              f'\nSharpe ratio: {format(self.__sharpe_ratio, ".4f")}'
-              f'\nAvg annual profit: {format(self.__avg_annual_profit, ".2f")}'
+        print(
+            f'\nSymbol: {self.__symbol}'
+            f'\nPerformance summary: '
+            f'\nNumber of positions: {len(self.__returns_list)}'
+            f'\nNumber of profitable positions: {len(self.__profitable_pos_list)}'
+            f'\nNumber of loosing positions: {len(self.__loosing_pos_list)}'
+            f'\n% wins: {format(self.__pct_wins, ".2f")}'
+            f'\n% losses: {format(self.__pct_losses, ".2f")}'
+            f'\nTesting periods: {self.__num_testing_periods}'
+            f'\nStart capital: {self.__start_capital}'
+            f'\nFinal capital: {format(self.__final_capital, ".3f")}'
+            f'\nTotal gross profit: {format(self.__total_gross_profit, ".3f")}'
+            f'\nAvg pos net profit: {format(self.__avg_pos_net_result, ".3f")}'
+            f'\nMean P/L: {format(self.__mean_profit_loss, ".3f")}'
+            f'\nMedian P/L: {format(self.__median_profit_loss, ".3f")}'
+            f'\nStd of P/L: {format(self.__std_profit_loss, ".3f")}'
+            f'\nMean return: {format(self.__mean_return, ".3f")}'
+            f'\nMedian return: {format(self.__median_return, ".3f")}'
+            f'\nStd of returns: {format(self.__std_return, ".3f")}'
+            f'\nExpectancy: {format(self.__expectancy, ".3f")}'
+            f'\nRate of return: {format(self.__rate_of_return, ".2f")}'
+            f'\nMax drawdown: {format(self.__max_drawdown, ".2f")}%'
+            f'\nRoMad: {format(self.__return_to_max_drawdown, ".3f")}%'
+            f'\nProfit factor: {format(self.__profit_factor, ".3f")}'
+            f'\nCAGR: {format(self.__cagr, ".2f")}%'
+            f'\nSharpe ratio: {format(self.__sharpe_ratio, ".4f")}'
+            f'\nAvg annual profit: {format(self.__avg_annual_profit, ".2f")}'
+    
+            f'\n\nTotal equity market to market:'
+            f'\n{list(map(float, self.__equity_list))}'
+            f'\nP/L (per contract):'
+            f'\n{self.__profit_loss_list}'
+            f'\nReturns:'
+            f'\n{self.__returns_list}'
         
-              f'\n\nTotal equity market to market:'
-              f'\n{list(map(float, self.__equity_list))}'
-              f'\nP/L (per contract):'
-              f'\n{self.__profit_loss_list}'
-              f'\nReturns:'
-              f'\n{self.__returns_list}'
-            
-              f'\n\nProfits (per contract):'
-              f'\n{self.__profitable_pos_list}'
-              f'\nMean profit (per contract): {format(self.__mean_positive_pos, ".3f")}'
-              f'\nMedian profit (per contract): {format(self.__median_positive_pos, ".3f")}'
+            f'\n\nProfits (per contract):'
+            f'\n{self.__profitable_pos_list}'
+            f'\nMean profit (per contract): {format(self.__mean_positive_pos, ".3f")}'
+            f'\nMedian profit (per contract): {format(self.__median_positive_pos, ".3f")}'
 
-              f'\n\nLosses (per contract):'
-              f'\n{self.__loosing_pos_list}'
-              f'\nMean loss (per contract): {format(self.__mean_negative_pos, ".3f")}'
-              f'\nMedian loss (per contract): {format(self.__median_negative_pos, ".3f")}'
-            
-              f'\n\nMAE data: {str(self.__mae_list)}'
-              f'\nMFE data: {str(self.__mfe_list)}'
-              f'\nReturns: {str(self.__returns_list)}')
+            f'\n\nLosses (per contract):'
+            f'\n{self.__loosing_pos_list}'
+            f'\nMean loss (per contract): {format(self.__mean_negative_pos, ".3f")}'
+            f'\nMedian loss (per contract): {format(self.__median_negative_pos, ".3f")}'
+        
+            f'\n\nMAE data: {str(self.__mae_list)}'
+            f'\nMFE data: {str(self.__mfe_list)}'
+            f'\nReturns: {str(self.__returns_list)}'
+        )
 
     def plot_performance_summary(
         self, asset_price_series, plot_fig=False, save_fig_to_path=None
@@ -496,10 +357,126 @@ class Metrics:
             to save the plot as a file. Default value=None
         """
 
-        alt_system_metrics_summary_plot(
+        system_metrics_summary_plot(
             self.__market_to_market_returns_list, self.__equity_list,
             asset_price_series, self.__mae_list, self.__mfe_list,
             self.__returns_list, self.__pos_period_lengths_list,
             self.__symbol, self.summary_data_dict,
             plot_fig=plot_fig, save_fig_to_path=save_fig_to_path
         )
+
+    def __call__(self, positions: List[Position]):
+        """
+        Iterates over the given collection of Position objects and calculates metrics
+        derived from them.
+        
+        Parameters
+        ----------
+        :param positions: 
+            'list' : A collection of Position objects.
+        """
+        
+        for pos in iter(positions):
+            self.__positions.append(pos)
+            tot_entry_cap = pos.entry_price * pos.position_size
+            pos_value = tot_entry_cap
+            for mtm_return in pos.market_to_market_returns_list:
+                self.__equity_list = np.append(
+                    self.__equity_list, 
+                    round(self.__equity_list[-1] + pos_value * (mtm_return / 100), 2)
+                )
+                pos_value += pos_value * (mtm_return / 100)
+            self.__equity_list[-1] -= pos.commission
+
+            self.__profit_loss_list = np.append(
+                self.__profit_loss_list, float(pos.profit_loss)
+            )
+            self.__returns_list = np.append(
+                self.__returns_list, float(pos.position_return)
+            )
+            self.__market_to_market_returns_list = np.concatenate(
+                (self.__market_to_market_returns_list, pos.market_to_market_returns_list), axis=0
+            )
+            self.__pos_net_results_list = np.append(
+                self.__pos_net_results_list, pos.net_result
+            )
+            self.__pos_gross_results_list = np.append(
+                self.__pos_gross_results_list, pos.gross_result
+            )
+            self.__pos_period_lengths_list = np.append(
+                self.__pos_period_lengths_list, len(pos.returns_list)
+            )
+
+            if pos.profit_loss > 0:
+                self.__profitable_pos_list = np.append(
+                    self.__profitable_pos_list, float(pos.profit_loss)
+                )
+                self.__profitable_pos_returns_list = np.append(
+                    self.__profitable_pos_returns_list, pos.position_return
+                )
+                self.__net_wins_list = np.append(
+                    self.__net_wins_list, pos.net_result
+                )
+                self.__gross_wins_list = np.append(
+                    self.__gross_wins_list, pos.gross_result
+                )
+                self.__w_mae_list = np.append(
+                    self.__w_mae_list, float(pos.mae)
+                )
+            if pos.profit_loss <= 0:
+                self.__loosing_pos_list = np.append(
+                    self.__loosing_pos_list, float(pos.profit_loss)
+                )
+                self.__net_losses_list = np.append(
+                    self.__net_losses_list, pos.net_result
+                )
+                self.__gross_losses_list = np.append(
+                    self.__gross_losses_list, pos.gross_result
+                )
+
+            self.__mae_list = np.append(self.__mae_list, float(pos.mae))
+            self.__mfe_list = np.append(self.__mfe_list, float(pos.mfe))
+
+        self.__final_capital = int(self.__equity_list[-1])
+        if len(self.__profitable_pos_list) == 0:
+            self.__pct_wins = 0
+        else:
+            self.__pct_wins = len(self.__profitable_pos_list) / len(self.__positions) * 100
+        if len(self.__loosing_pos_list) == 0:
+            self.__pct_losses = 0
+        else:
+            self.__pct_losses = len(self.__loosing_pos_list) / len(self.__positions) * 100
+        self.__mean_profit_loss = np.mean(self.__profit_loss_list)
+        self.__median_profit_loss = np.median(self.__profit_loss_list)
+        self.__std_profit_loss = np.std(self.__profit_loss_list)
+        self.__mean_return = np.mean(self.__returns_list)
+        self.__median_return = np.median(self.__returns_list)
+        self.__std_return = np.std(self.__returns_list)
+
+        self.__mean_positive_pos = np.mean(self.__profitable_pos_list)
+        self.__median_positive_pos = np.median(self.__profitable_pos_list)
+        self.__mean_negative_pos = np.mean(self.__loosing_pos_list)
+        self.__median_negative_pos = np.median(self.__loosing_pos_list)
+
+        self.__total_gross_profit = self.__final_capital - self.__start_capital
+        self.__avg_pos_net_result = np.mean(self.__pos_net_results_list)
+
+        self.__cagr = self._calculate_cagr()
+        self.__max_drawdown = self._calculate_max_drawdown()
+        self.__rate_of_return = self._calculate_rate_of_return()
+        self.__avg_annual_profit = self._calculate_avg_annual_profit()
+        try:
+            self.__sharpe_ratio = self._calculate_sharpe_ratio()
+        except DivisionByZero:
+            self.__sharpe_ratio = np.nan
+        self.__expectancy = self._calculate_expectancy()
+        try:
+            self.__profit_factor = sum(self.__gross_wins_list) / abs(sum(self.__gross_losses_list))
+        except (DivisionByZero, ZeroDivisionError, InvalidOperation):
+            self.__profit_factor = 0
+        try:
+            self.__return_to_max_drawdown = self.__rate_of_return / float(self.__max_drawdown)
+        except ZeroDivisionError:
+            self.__return_to_max_drawdown = 0
+
+        self._mae_mfe_dataframe_apply()

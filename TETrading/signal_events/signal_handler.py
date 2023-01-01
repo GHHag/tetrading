@@ -156,6 +156,15 @@ class SignalHandler:
                 raise Exception('DatabaseInsertException, failed to insert to database.')
 
     def get_position_sizing_dict(self, position_sizing_metric_str):
+        """
+        Calls and returns the get_pos_sizer_dict method of the __entry_signals member.
+
+        :param position_sizing_metric_str:
+            'str' : The system's position sizing metric as a string.
+        :return:
+            'dict'
+        """
+        
         return self.__entry_signals.get_pos_sizer_dict(position_sizing_metric_str)
 
     def __str__(self):

@@ -94,9 +94,9 @@ class PositionManager:
             print('No positions generated.')
         else:
             self.__metrics = Metrics(
-                self.__symbol, self.__generated_positions, 
-                self.__start_capital, self.__num_testing_periods
+                self.__symbol, self.__start_capital, self.__num_testing_periods
             )
+            self.__metrics(self.__generated_positions)
 
     def summarize_performance(self, plot_fig=False, save_fig_to_path=None):
         """

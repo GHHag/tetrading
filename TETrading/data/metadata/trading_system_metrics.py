@@ -29,13 +29,52 @@ class TradingSystemMetrics:
     __CAGR = 'cagr_(%)'
 
     @classproperty
+    def SYMBOL(cls):
+        return cls.__SYMBOL
+
+    @classproperty
+    def TOTAL_GROSS_PROFIT(cls):
+        return cls.__TOTAL_GROSS_PROFIT
+
+    @classproperty
+    def PROFIT_FACTOR(cls):
+        return cls.__PROFIT_FACTOR
+
+    @classproperty
+    def EXPECTANCY(cls):
+        return cls.__EXPECTANCY
+
+    @classproperty
+    def RATE_OF_RETURN(cls):
+        return cls.__RATE_OF_RETURN
+
+    @classproperty
     def MAX_DRAWDOWN(cls):
         return cls.__MAX_DRAWDOWN
 
     @classproperty
+    def ROMAD(cls):
+        return cls.__ROMAD
+
+    @classproperty
+    def CAGR(cls):
+        return cls.__CAGR
+
+    @classproperty
+    def PCT_WINS(cls):
+        return cls.__PCT_WINS
+
+    @classproperty
     def cls_attrs(cls):
-        #return [v for v in cls.__dict__.values() if isinstance(v, str) and v != '__main__' and v != 'TETrading.utils.metadata.trading_system_metrics']
         return [
             v for v in cls.__dict__.values() if isinstance(v, str) and \
             v not in ['__main__', 'TETrading.data.metadata.trading_system_metrics']
         ]
+
+    @classproperty
+    def system_evaluation_fields(cls):
+        return (
+            cls.__SYMBOL, cls.__SHARPE_RATIO, cls.__EXPECTANCY,
+            cls.__PROFIT_FACTOR, cls.__CAGR, cls.__PCT_WINS,
+            cls.__MEAN_RETURN, cls.__MAX_DRAWDOWN, cls.__ROMAD
+        )
