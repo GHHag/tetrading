@@ -75,14 +75,14 @@ def system_metrics_summary_plot(
         axs[0, 1].set_xlabel('Periods')
         axs[0, 1].set_ylabel('Price')
         axs[0, 1].text(
-            min(underlying_price_series), max(underlying_price_series)*0.9, 
-            f'Sharpe ratio: {round(underlying_sharpe, 3)}\n'
-            f'Max drawdown (%): {round(underlying_max_dd, 2)}\n'
-            f'CAGR (%): {round(underlying_cagr, 2)}',
+            np.min(underlying_price_series), np.max(underlying_price_series)*0.9, 
+            f'Sharpe ratio: {underlying_sharpe:3f}\n'
+            f'Max drawdown (%): {underlying_max_dd:.3f}\n'
+            f'CAGR (%): {underlying_cagr:.3f}',
             horizontalalignment='center'
         )
 
-    returns = np.array(list(map(float, returns_data)))
+    returns = np.array(returns_data, dtype=float)
     pctl80_returns = returns[int(len(returns) * 0.1) : int(len(returns) * 0.90)]
     axs[0, 2].hist(
         pctl80_returns, orientation='vertical', color='navy',
@@ -90,10 +90,10 @@ def system_metrics_summary_plot(
         label='System returns'
     )
     distribution_stats_text = 'System: \n' \
-            f'Mean: {round(np.mean(returns_data), 3)}\n' \
-            f'Median: {round(np.median(returns_data), 3)}\n' \
-            f'Std: {round(np.std(returns_data), 3)}'
-    text_x_coord = min(pctl80_returns)
+            f'Mean: {np.mean(returns_data):.3f}\n' \
+            f'Median: {np.median(returns_data):.3f}\n' \
+            f'Std: {np.std(returns_data):.3f}'
+    text_x_coord = np.min(pctl80_returns)
 
     if underlying_price_series:
         underlying_returns *= 100
@@ -107,10 +107,10 @@ def system_metrics_summary_plot(
         )
         axs[0, 2].legend(loc='upper right')
         distribution_stats_text += '\n\nUnderlying:\n' \
-            f'Mean: {round(np.mean(underlying_returns), 3)}\n' \
-            f'Median: {round(np.median(underlying_returns), 3)}\n' \
-            f'Std: {round(np.std(underlying_returns), 3)}'
-        text_x_coord = min(pctl80_underlying_returns)
+            f'Mean: {np.mean(underlying_returns):.3f}\n' \
+            f'Median: {np.median(underlying_returns):.3f}\n' \
+            f'Std: {np.std(underlying_returns):.3f}'
+        text_x_coord = np.min(pctl80_underlying_returns)
 
     axs[0, 2].yaxis.set_major_locator(MaxNLocator(integer=True))
     axs[0, 2].set_title('Returns (80th percentile)')
@@ -132,7 +132,7 @@ def system_metrics_summary_plot(
     axs[0, 3].set_ylabel('Periods')
 
     axs[1, 0].stem(
-        [x for x in range(len(returns_data))], sorted(returns_data), 
+        [x for x in range(len(returns_data))], np.sort(returns_data), 
         markerfmt=' ', use_line_collection=True
     )
     axs[1, 0].set_title('Sorted Returns')
@@ -182,13 +182,13 @@ def system_metrics_summary_plot(
 
     axs[1, 3].text(
         0.2, 0.3, 
-        f'Win rate:                {format(summary_data_dict["%_wins"], ".2f")}%\n\n'
+        f'Win rate (%):            {summary_data_dict["%_wins"]:.2f}\n\n'
         f'Gross profit             {summary_data_dict["total_gross_profit"]}\n\n'
-        f'Profit factor:           {summary_data_dict["profit_factor"]}\n\n'
-        f'Sharpe ratio:            {summary_data_dict["sharpe_ratio"]}\n\n'
-        f'Expectancy:              {summary_data_dict["expectancy"]}\n\n'
-        f'Max drawdown (%):        {format(summary_data_dict["max_drawdown_(%)"], ".2f")}\n\n'
-        f'CAGR (%):                {summary_data_dict["cagr_(%)"]}', fontsize=12
+        f'Profit factor:           {summary_data_dict["profit_factor"]:.3f}\n\n'
+        f'Sharpe ratio:            {summary_data_dict["sharpe_ratio"]:.3f}\n\n'
+        f'Expectancy:              {summary_data_dict["expectancy"]:.3f}\n\n'
+        f'Max drawdown (%):        {summary_data_dict["max_drawdown_(%)"]:.2f}\n\n'
+        f'CAGR (%):                {summary_data_dict["cagr_(%)"]:.2f}', fontsize=12
     )
     axs[1, 3].axis('off')
     axs[1, 3].set_title('Performance Summary')
@@ -235,15 +235,15 @@ def returns_distribution_plot(
     market_to_market_returns = market_to_market_returns[
         (market_to_market_returns > -20) & (market_to_market_returns < 20)
     ]
-    bins = max([int(np.sqrt(len(market_to_market_returns)) / 2), 8])
+    bins = np.max([int(np.sqrt(len(market_to_market_returns)) / 2), 8])
     ax[0].hist(market_to_market_returns, bins=bins, edgecolor='black')
     ax[0].set_title('Market to Market Returns Distribution')
     ax[0].text(
         10.0, 10.0,
         f'Count: {len(market_to_market_returns)}\n'
-        f'Mean: {round(np.mean(market_to_market_returns), 4)}\n'
-        f'Median: {round(np.median(market_to_market_returns), 4)}\n'
-        f'Std: {round(np.std(market_to_market_returns), 4)}\n'
+        f'Mean: {np.mean(market_to_market_returns):.3f}\n'
+        f'Median: {np.median(market_to_market_returns):.3f}\n'
+        f'Std: {np.std(market_to_market_returns):.3f}\n'
         f'25%: {np.quantile(market_to_market_returns, 0.25)}\n'
         f'50%: {np.quantile(market_to_market_returns, 0.5)}\n'
         f'75%: {np.quantile(market_to_market_returns, 0.75)}\n'
