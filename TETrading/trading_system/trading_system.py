@@ -19,8 +19,7 @@ from TETrading.metrics.metrics_summary_plot import returns_distribution_plot
 class TradingSystem:
     """
     Data together with logic forms the trading system. Objects of this class
-    use fields with data and logic to generate historic positions, new signals
-    and a position sizing/system health mechanism.
+    use fields with data and logic to generate historic positions and new signals.
 
     Parameters
     ----------

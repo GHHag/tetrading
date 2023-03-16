@@ -164,10 +164,10 @@ class Position:
             'int/float/Decimal'
         """
 
-        if min(self.__returns_list) >= 0:
+        if np.min(self.__returns_list) >= 0:
             return 0
         else:
-            return min(self.__returns_list)
+            return np.min(self.__returns_list)
 
     @property
     def mfe(self):
@@ -178,8 +178,9 @@ class Position:
         :return:
             'int/float/Decimal'
         """
-        if max(self.__returns_list) > 0:
-            return max(self.__returns_list)
+        
+        if np.max(self.__returns_list) > 0:
+            return np.max(self.__returns_list)
         else:
             return 0
 

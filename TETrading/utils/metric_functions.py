@@ -24,13 +24,13 @@ def calculate_max_drawdown(price_series):
     for index, equity in enumerate(price_series):
         if equity > peak_value:
             peak_value = equity
-            trough_value = min(price_series[index:])
+            trough_value = np.min(price_series[index:])
             drawdown = (trough_value - peak_value) / peak_value
 
             if drawdown < max_drawdown:
                 max_drawdown = drawdown
 
-    return abs(max_drawdown * 100)
+    return np.abs(max_drawdown * 100)
 
 
 def calculate_cagr(initial_value, final_value, num_of_periods, yearly_periods=251):

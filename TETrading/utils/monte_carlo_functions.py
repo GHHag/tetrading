@@ -180,10 +180,10 @@ def monte_carlo_simulations_plot(
         axs[0].set_ylabel('Equity')
 
     hmdd_patch = mpatches.Patch(
-        label='Highest max drawdown ' + str(round(max(max_drawdowns_list), 2)) + '%'
+        label=f'Highest max drawdown {np.max(max_drawdowns_list):.2f}%'
     )
     lmdd_patch = mpatches.Patch(
-        label='Lowest max drawdown ' + str(round(min(max_drawdowns_list), 2)) + '%'
+        label=f'Lowest max drawdown {np.min(max_drawdowns_list):.2f}%'
     )
     axs[0].legend(handles=[hmdd_patch, lmdd_patch])
 
@@ -194,7 +194,7 @@ def monte_carlo_simulations_plot(
     axs[1].set_xlabel('Percentile')
     axs[1].set_ylabel('Final equity')
 
-    min_equity = min(final_equity_list)
+    min_equity = np.min(final_equity_list)
     twentyfifth_pctl = num_of_sims * 0.25
     twentyfifth_pctl_ret = final_equity_list[(int(len(final_equity_list) * 0.25))]
     axs[1].plot(
@@ -217,8 +217,8 @@ def monte_carlo_simulations_plot(
         color='black', linestyle=(0, (3, 1, 1, 1))
     )
 
-    car25_patch = mpatches.Patch(label='CAR25 ' + str(round(car25, 2)), color='purple')
-    car75_patch = mpatches.Patch(label='CAR75 ' + str(round(car75, 2)), color='black')
+    car25_patch = mpatches.Patch(label=f'CAR25 {car25:.2f}', color='purple')
+    car75_patch = mpatches.Patch(label=f'CAR75 {car75:.2f}', color='black')
     axs[1].legend(handles=[car25_patch, car75_patch])
 
     axs[2].plot(sorted(max_drawdowns_list), color='royalblue')
@@ -412,7 +412,7 @@ def calculate_safe_f(
         print_dataframe=print_dataframe
     )
 
-    max_dds = sorted([dd[TradingSystemMetrics.MAX_DRAWDOWN] for dd in monte_carlo_sims_dicts_list])
+    max_dds = np.sort([dd[TradingSystemMetrics.MAX_DRAWDOWN] for dd in monte_carlo_sims_dicts_list])
     dd_at_tolerated_threshold = max_dds[int(len(max_dds) * max_dd_pctl_threshold)]
 
     if dd_at_tolerated_threshold <= 0: dd_at_tolerated_threshold = 1
