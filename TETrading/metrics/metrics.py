@@ -126,9 +126,9 @@ class Metrics:
             'expectancy': round(self.__expectancy, 3),
             'max_drawdown_(%)': float(self.__max_drawdown),
             'avg_mae': round(np.mean(self.__mae_list), 3),
-            'min_mae': round(min(self.__mae_list), 3),
+            'min_mae': round(np.min(self.__mae_list), 3),
             'avg_mfe': round(np.mean(self.__mfe_list), 3),
-            'max_mfe': round(max(self.__mfe_list), 3),
+            'max_mfe': round(np.max(self.__mfe_list), 3),
             'romad': round(self.__return_to_max_drawdown, 3),
             'cagr_(%)': round(self.__cagr, 3)
         }
@@ -165,13 +165,13 @@ class Metrics:
         for index, equity in enumerate(self.__equity_list):
             if equity > peak_value:
                 peak_value = equity
-                trough_value = min(self.__equity_list[index:])
+                trough_value = np.min(self.__equity_list[index:])
                 drawdown = (trough_value - peak_value) / peak_value
 
                 if drawdown < max_drawdown:
                     max_drawdown = drawdown
 
-        return abs(max_drawdown * 100)
+        return np.abs(max_drawdown * 100)
 
     def _calculate_expectancy(self):
         """
@@ -184,12 +184,12 @@ class Metrics:
         if not len(self.__positions) > 0:
             return np.nan
         else:
-            avg_profit = sum(self.__pos_net_results_list) / len(self.__positions)
+            avg_profit = np.sum(self.__pos_net_results_list) / len(self.__positions)
             avg_loss = np.mean(self.__net_losses_list)
             if avg_loss == 0:
                 return np.nan
             else:
-                return float(avg_profit) / float(abs(avg_loss))
+                return float(avg_profit) / float(np.abs(avg_loss))
 
     def _calculate_cagr(self, yearly_periods=251):
         """
@@ -211,8 +211,8 @@ class Metrics:
         years = num_of_periods / yearly_periods
 
         if final_value < 0:
-            final_value += abs(final_value)
-            initial_value += abs(final_value)
+            final_value += np.abs(final_value)
+            initial_value += np.abs(final_value)
 
         try:
             cagr = math.pow((final_value / initial_value), (1 / years)) - 1
@@ -471,7 +471,7 @@ class Metrics:
             self.__sharpe_ratio = np.nan
         self.__expectancy = self._calculate_expectancy()
         try:
-            self.__profit_factor = sum(self.__gross_wins_list) / abs(sum(self.__gross_losses_list))
+            self.__profit_factor = np.sum(self.__gross_wins_list) / np.abs(np.sum(self.__gross_losses_list))
         except (DivisionByZero, ZeroDivisionError, InvalidOperation):
             self.__profit_factor = 0
         try:
