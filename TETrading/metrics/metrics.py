@@ -471,7 +471,8 @@ class Metrics:
             self.__sharpe_ratio = np.nan
         self.__expectancy = self._calculate_expectancy()
         try:
-            self.__profit_factor = np.sum(self.__gross_wins_list) / np.abs(np.sum(self.__gross_losses_list))
+            self.__profit_factor = np.sum(self.__gross_wins_list, dtype=float) / \
+                np.abs(np.sum(self.__gross_losses_list, dtype=float))
         except (DivisionByZero, ZeroDivisionError, InvalidOperation):
             self.__profit_factor = 0
         try:
