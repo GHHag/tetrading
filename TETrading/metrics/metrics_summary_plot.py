@@ -3,6 +3,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.ticker import MaxNLocator
 
+from TETrading.data.metadata.trading_system_metrics import TradingSystemMetrics
 from TETrading.utils.metric_functions import calculate_max_drawdown, calculate_sharpe_ratio, \
     calculate_cagr 
 
@@ -182,13 +183,13 @@ def system_metrics_summary_plot(
 
     axs[1, 3].text(
         0.2, 0.3, 
-        f'Win rate (%):            {summary_data_dict["%_wins"]:.2f}\n\n'
-        f'Gross profit             {summary_data_dict["total_gross_profit"]}\n\n'
-        f'Profit factor:           {summary_data_dict["profit_factor"]:.3f}\n\n'
-        f'Sharpe ratio:            {summary_data_dict["sharpe_ratio"]:.3f}\n\n'
-        f'Expectancy:              {summary_data_dict["expectancy"]:.3f}\n\n'
-        f'Max drawdown (%):        {summary_data_dict["max_drawdown_(%)"]:.2f}\n\n'
-        f'CAGR (%):                {summary_data_dict["cagr_(%)"]:.2f}', fontsize=12
+        f'Win rate (%):            {summary_data_dict[TradingSystemMetrics.PCT_WINS]:.2f}\n\n'
+        f'Gross profit             {summary_data_dict[TradingSystemMetrics.TOTAL_GROSS_PROFIT]}\n\n'
+        f'Profit factor:           {summary_data_dict[TradingSystemMetrics.PROFIT_FACTOR]:.3f}\n\n'
+        f'Sharpe ratio:            {summary_data_dict[TradingSystemMetrics.SHARPE_RATIO]:.3f}\n\n'
+        f'Expectancy:              {summary_data_dict[TradingSystemMetrics.EXPECTANCY]:.3f}\n\n'
+        f'Max drawdown (%):        {summary_data_dict[TradingSystemMetrics.MAX_DRAWDOWN]:.2f}\n\n'
+        f'CAGR (%):                {summary_data_dict[TradingSystemMetrics.CAGR]:.2f}', fontsize=12
     )
     axs[1, 3].axis('off')
     axs[1, 3].set_title('Performance Summary')

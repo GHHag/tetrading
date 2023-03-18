@@ -2,6 +2,8 @@ from typing import Dict, List
 
 import pandas as pd
 
+from TETrading.data.metadata.trading_system_attributes import TradingSystemAttributes
+
 
 class SystemSignals:
     """
@@ -43,7 +45,7 @@ class SystemSignals:
         """
         
         return {
-            x['symbol']: x['data'][position_sizing_metric_str] 
+            x[TradingSystemAttributes.SYMBOL]: x['data'][position_sizing_metric_str] 
             for x in self.__data_list
         }
 
@@ -60,7 +62,9 @@ class SystemSignals:
             'dict' : A dict containing data of a position.
         """
 
-        self.__data_list.append({'symbol': symbol, 'data': data_dict})
+        self.__data_list.append(
+            {TradingSystemAttributes.SYMBOL: symbol, 'data': data_dict}
+        )
 
     def add_evaluation_data(self, evaluation_data_dict: Dict):
         """
@@ -76,7 +80,7 @@ class SystemSignals:
         """
 
         for instrument_dict in self.__data_list:
-            if instrument_dict['symbol'] in evaluation_data_dict.values():
+            if instrument_dict[TradingSystemAttributes.SYMBOL] in evaluation_data_dict.values():
                 assert 'data' in instrument_dict, \
                     "'instrument_dict' is missing required 'data' key is missing."
                 assert isinstance(instrument_dict['data'], dict), \

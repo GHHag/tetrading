@@ -5,6 +5,7 @@ from typing import List
 import numpy as np
 import pandas as pd
 
+from TETrading.data.metadata.trading_system_metrics import TradingSystemMetrics
 from TETrading.position.position import Position
 from TETrading.metrics.metrics_summary_plot import system_metrics_summary_plot
 
@@ -107,30 +108,30 @@ class Metrics:
         """
 
         return {
-            'symbol': self.__symbol,
-            'number_of_positions': len(self.__returns_list),
-            'start_capital': self.__start_capital,
-            'final_capital': self.__final_capital,
-            'total_gross_profit': self.__total_gross_profit,
-            'avg_pos_net_profit': round(self.__avg_pos_net_result, 3),
-            '%_wins': self.__pct_wins,
-            'profit_factor': round(self.__profit_factor, 3),
-            'sharpe_ratio': round(float(self.__sharpe_ratio), 3),
-            'rate_of_return': self.__rate_of_return,
-            'mean_p/l': round(self.__mean_profit_loss, 3),
-            'median_p/l': round(self.__median_profit_loss, 3),
-            'std_of_p/l': round(self.__std_profit_loss, 3),
-            'mean_return': round(self.__mean_return, 3),
-            'median_return': round(self.__median_return, 3),
-            'std_of_returns': round(self.__std_return, 3),
-            'expectancy': round(self.__expectancy, 3),
-            'max_drawdown_(%)': float(self.__max_drawdown),
-            'avg_mae': round(np.mean(self.__mae_list), 3),
-            'min_mae': round(np.min(self.__mae_list), 3),
-            'avg_mfe': round(np.mean(self.__mfe_list), 3),
-            'max_mfe': round(np.max(self.__mfe_list), 3),
-            'romad': round(self.__return_to_max_drawdown, 3),
-            'cagr_(%)': round(self.__cagr, 3)
+            TradingSystemMetrics.SYMBOL: self.__symbol,
+            TradingSystemMetrics.NUM_OF_POSITIONS: len(self.__returns_list),
+            TradingSystemMetrics.START_CAPITAL: self.__start_capital,
+            TradingSystemMetrics.FINAL_CAPITAL: self.__final_capital,
+            TradingSystemMetrics.TOTAL_GROSS_PROFIT: self.__total_gross_profit,
+            TradingSystemMetrics.AVG_POS_NET_PROFIT: round(self.__avg_pos_net_result, 3),
+            TradingSystemMetrics.PCT_WINS: self.__pct_wins,
+            TradingSystemMetrics.PROFIT_FACTOR: round(self.__profit_factor, 3),
+            TradingSystemMetrics.EXPECTANCY: round(self.__expectancy, 3),
+            TradingSystemMetrics.SHARPE_RATIO: round(float(self.__sharpe_ratio), 3),
+            TradingSystemMetrics.RATE_OF_RETURN: self.__rate_of_return,
+            TradingSystemMetrics.MEAN_PROFIT_LOSS: round(self.__mean_profit_loss, 3),
+            TradingSystemMetrics.MEDIAN_PROFIT_LOSS: round(self.__median_profit_loss, 3),
+            TradingSystemMetrics.STD_OF_PROFIT_LOSS: round(self.__std_profit_loss, 3),
+            TradingSystemMetrics.MEAN_RETURN: round(self.__mean_return, 3),
+            TradingSystemMetrics.MEDIAN_RETURN: round(self.__median_return, 3),
+            TradingSystemMetrics.STD_OF_RETURNS: round(self.__std_return, 3),
+            TradingSystemMetrics.AVG_MAE: round(np.mean(self.__mae_list), 3),
+            TradingSystemMetrics.MIN_MAE: round(np.min(self.__mae_list), 3),
+            TradingSystemMetrics.AVG_MFE: round(np.mean(self.__mfe_list), 3),
+            TradingSystemMetrics.MAX_MFE: round(np.max(self.__mfe_list), 3),
+            TradingSystemMetrics.MAX_DRAWDOWN: float(self.__max_drawdown),
+            TradingSystemMetrics.ROMAD: round(self.__return_to_max_drawdown, 3),
+            TradingSystemMetrics.CAGR: round(self.__cagr, 3)
         }
 
     def _mae_mfe_dataframe_apply(self):
